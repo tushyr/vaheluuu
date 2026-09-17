@@ -388,12 +388,29 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
   const [chosen, setChosen] = useState<string | null>(null);
   const [hoveredAnswer, setHoveredAnswer] = useState<string | null>(null);
   const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
+  const answerTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { display: countdownDisplay, expired: countdownExpired } = useCountdown(CHAPTER_3_UNLOCK);
 
   const goTo = useCallback((next: Stage) => {
     setVisible(false);
     setTimeout(() => { setStage(next); setVisible(true); }, 620);
   }, []);
+
+  const proceedFromAnswer = useCallback(async () => {
+    if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
+    try {
+      await fetch("/api/chapter/spin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "wild" }),
+      });
+    } catch (e) { console.error(e); }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("p23_ch2_done", "true");
+    }
+    onRefreshState?.();
+    goTo("reflection");
+  }, [goTo, onRefreshState]);
 
   const handleAnswer = useCallback(async (id: string) => {
     if (chosen) return;
@@ -407,21 +424,8 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
     try {
       await fetch("/api/chapter/response", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "sleepy", moduleId: "question_01", questionKey: "fragment_02", questionText: "you said \"i'm not sleepy.\" how long until you're unconscious?", chosenAnswer: id }) });
     } catch (e) { console.error(e); }
-    setTimeout(async () => {
-      try {
-        await fetch("/api/chapter/spin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "wild" }),
-        });
-      } catch (e) { console.error(e); }
-      if (typeof window !== "undefined") {
-        localStorage.setItem("p23_ch2_done", "true");
-      }
-      onRefreshState?.();
-      goTo("reflection");
-    }, 1800);
-  }, [chosen, goTo, onRefreshState]);
+    answerTimerRef.current = setTimeout(proceedFromAnswer, 5000);
+  }, [chosen, proceedFromAnswer]);
 
   return (
     <>
@@ -439,7 +443,21 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
             </h2>
             <div style={{ margin: "clamp(1rem,3.5vh,2rem) 0" }} />
             {chosen ? (
-              <div className="fade-up"><p className="font-hand" style={{ fontSize: "clamp(1.15rem, 3.6vw, 1.45rem)", color: ELECTRIC, whiteSpace: "pre-line", lineHeight: 1.6 }}>{ANSWER_ECHOES[chosen]}</p></div>
+              <div className="fade-up">
+                <p className="font-hand" style={{ fontSize: "clamp(1.15rem, 3.6vw, 1.45rem)", color: ELECTRIC, whiteSpace: "pre-line", lineHeight: 1.6 }}>{ANSWER_ECHOES[chosen]}</p>
+                <div style={{ marginTop: "clamp(1rem, 2.5vh, 1.8rem)" }}>
+                  <button
+                    onClick={proceedFromAnswer}
+                    className="cta-link"
+                    style={{
+                      fontSize: "clamp(0.82rem, 2.4vw, 0.9rem)",
+                      color: ELECTRIC,
+                    }}
+                  >
+                    continue →
+                  </button>
+                </div>
+              </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {ANSWERS.map((a, i) => {

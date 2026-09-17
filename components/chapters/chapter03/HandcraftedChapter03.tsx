@@ -228,6 +228,8 @@ function StaggeredQuestion({ visible, onAnswer }: { visible: boolean; onAnswer: 
   const [showPrompt, setShowPrompt] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
   const [settling, setSettling] = useState(false);
+  const [showContinue, setShowContinue] = useState(false);
+  const pickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const t1 = setTimeout(() => setShown(1), 700);
@@ -237,12 +239,18 @@ function StaggeredQuestion({ visible, onAnswer }: { visible: boolean; onAnswer: 
     return () => [t1, t2, t3, t4].forEach(clearTimeout);
   }, []);
 
+  const proceed = useCallback((id: string) => {
+    if (pickTimerRef.current) clearTimeout(pickTimerRef.current);
+    onAnswer(id);
+  }, [onAnswer]);
+
   const handlePick = (id: string) => {
     if (chosen || settling) return;
     setSettling(true);
     setChosen(id);
     haptic(40);
-    setTimeout(() => onAnswer(id), 1400);
+    setTimeout(() => setShowContinue(true), 300);
+    pickTimerRef.current = setTimeout(() => proceed(id), 4000);
   };
 
   const sizes = ["clamp(2.2rem,7vw,3.8rem)", "clamp(1.7rem,5.5vw,3rem)", "clamp(1.4rem,4.5vw,2.4rem)"];
@@ -271,9 +279,24 @@ function StaggeredQuestion({ visible, onAnswer }: { visible: boolean; onAnswer: 
           })}
         </div>
 
-        <div style={{ marginTop: "clamp(2rem,5vh,4rem)", opacity: showPrompt && !chosen ? 0.6 : 0, transition: "opacity 0.8s ease" }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.72rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", margin: 0 }}>tap yours</p>
-        </div>
+        {chosen ? (
+          <div style={{ marginTop: "clamp(1.5rem,4vh,2.5rem)", opacity: showContinue ? 1 : 0, transition: "opacity 0.4s ease" }}>
+            <button
+              onClick={() => proceed(chosen)}
+              className="cta-link"
+              style={{
+                fontSize: "clamp(0.82rem, 2.4vw, 0.9rem)",
+                color: "#C9974A",
+              }}
+            >
+              continue →
+            </button>
+          </div>
+        ) : (
+          <div style={{ marginTop: "clamp(2rem,5vh,4rem)", opacity: showPrompt ? 0.6 : 0, transition: "opacity 0.8s ease" }}>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.72rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", margin: 0 }}>tap yours</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -487,20 +510,18 @@ export default function HandcraftedChapter03({ initialSessionId, initialComplete
     try {
       await fetch("/api/chapter/response", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "interrupter", moduleId: "question_01", questionKey: "fragment_03", questionText: "who gets to finish the sentence?", chosenAnswer: id }) });
     } catch (e) { console.error(e); }
-    setTimeout(async () => {
-      try {
-        await fetch("/api/chapter/spin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "fierce" }),
-        });
-      } catch (e) { console.error(e); }
-      if (typeof window !== "undefined") {
-        localStorage.setItem("p23_ch3_done", "true");
-      }
-      onRefreshState?.();
-      goTo("reflection");
-    }, 1800);
+    try {
+      await fetch("/api/chapter/spin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "fierce" }),
+      });
+    } catch (e) { console.error(e); }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("p23_ch3_done", "true");
+    }
+    onRefreshState?.();
+    goTo("reflection");
   }, [chosen, goTo, onRefreshState]);
 
   return (

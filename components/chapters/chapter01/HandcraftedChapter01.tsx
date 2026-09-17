@@ -285,6 +285,14 @@ export default function HandcraftedChapter01({
     setTimeout(() => { setStage(next); setVisible(true); }, 620);
   }, []);
 
+  const answerTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const moodTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const proceedFromAnswer = useCallback(() => {
+    if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
+    goTo("gift");
+  }, [goTo]);
+
   const handleAnswer = useCallback(async (id: string) => {
     if (chosen) return;
     setChosen(id);
@@ -308,8 +316,14 @@ export default function HandcraftedChapter01({
         }),
       });
     } catch (e) { console.error(e); }
-    setTimeout(() => goTo("gift"), 1800);
-  }, [chosen, goTo]);
+    answerTimerRef.current = setTimeout(proceedFromAnswer, 5000);
+  }, [chosen, proceedFromAnswer]);
+
+  const proceedFromMood = useCallback(() => {
+    if (moodTimerRef.current) clearTimeout(moodTimerRef.current);
+    onRefreshState?.();
+    goTo("gift-reveal");
+  }, [onRefreshState, goTo]);
 
   /* Mood pick → triggers reveal */
   const handleMoodPick = useCallback(async (id: string) => {
@@ -333,11 +347,8 @@ export default function HandcraftedChapter01({
         localStorage.setItem("p23_ch1_done", "true");
       }
     } catch (e) { console.error(e); }
-    setTimeout(() => {
-      onRefreshState?.();
-      goTo("gift-reveal");
-    }, 400);
-  }, [moodPicked, onRefreshState, goTo]);
+    moodTimerRef.current = setTimeout(proceedFromMood, 4000);
+  }, [moodPicked, proceedFromMood]);
 
   /* Easter egg */
   const handleStarTap = () => {
@@ -386,6 +397,18 @@ export default function HandcraftedChapter01({
                 }}>
                   {ANSWER_ECHOES[chosen]}
                 </p>
+                <div style={{ marginTop: "clamp(1rem, 2.5vh, 1.8rem)" }}>
+                  <button
+                    onClick={proceedFromAnswer}
+                    className="cta-link"
+                    style={{
+                      fontSize: "clamp(0.82rem, 2.4vw, 0.9rem)",
+                      color: "#C9974A",
+                    }}
+                  >
+                    continue →
+                  </button>
+                </div>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column" }}>
@@ -470,8 +493,20 @@ export default function HandcraftedChapter01({
                   fontSize: "clamp(1.12rem, 3.5vw, 1.35rem)",
                   color: "#C9974A", lineHeight: 1.6,
                 }}>
-                  yeah. that's what i thought.
+                  yeah. that&apos;s what i thought.
                 </p>
+                <div style={{ marginTop: "clamp(1rem, 2.5vh, 1.8rem)" }}>
+                  <button
+                    onClick={proceedFromMood}
+                    className="cta-link"
+                    style={{
+                      fontSize: "clamp(0.82rem, 2.4vw, 0.9rem)",
+                      color: "#C9974A",
+                    }}
+                  >
+                    your gift →
+                  </button>
+                </div>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column" }}>

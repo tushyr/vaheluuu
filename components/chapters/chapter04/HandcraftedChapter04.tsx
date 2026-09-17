@@ -578,16 +578,16 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
       confetti({ particleCount: 95, spread: 72, origin: { y: 0.6 }, colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#C4687A", "#DDD5C8"], scalar: 0.9 });
       haptic([30, 40, 100, 40, 120]);
     });
-    // Joke fades out
-    s(base + 7 * 320 + 2450, () => setShowJoke(false));
+    // Joke fades out after comfortable reading time
+    s(base + 7 * 320 + 4500, () => setShowJoke(false));
     // "love you." — cursive, permanent
-    s(base + 7 * 320 + 3100, () => setShowLoveWord(true));
+    s(base + 7 * 320 + 5200, () => setShowLoveWord(true));
 
     // "always been the plan." — quiet, below
-    s(base + 7 * 320 + 4200, () => setShowAlways(true));
+    s(base + 7 * 320 + 6300, () => setShowAlways(true));
 
     // CTA
-    s(base + 7 * 320 + 5200, () => setShowCta(true));
+    s(base + 7 * 320 + 7300, () => setShowCta(true));
 
     return () => t.forEach(clearTimeout);
   }, []);
@@ -860,8 +860,8 @@ function FinalScreen({
       s(total, () => setUrduShown(i + 1));
     });
 
-    // Pause, then fade out entire Urdu block
-    const urduDone = total + 1400;
+    // Pause, then fade out entire Urdu block (giving ample time to read)
+    const urduDone = total + 4500;
     s(urduDone, () => setUrduVisible(false));
     s(urduDone + 900, () => setUrduRemoved(true));
 
@@ -1258,6 +1258,7 @@ export default function HandcraftedChapter04({
     q3: "C3",
   });
   const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
+  const answerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1273,6 +1274,22 @@ export default function HandcraftedChapter04({
     setVisible(false);
     setTimeout(() => { setStage(next); setVisible(true); }, 620);
   }, []);
+
+  const proceedFromAnswer = useCallback(async () => {
+    if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
+    try {
+      await fetch("/api/chapter/spin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "forever", preferredRewardIndex: 0 }),
+      });
+    } catch (e) { console.error(e); }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("p23_ch4_done", "true");
+    }
+    onRefreshState?.();
+    goTo("sentence-reveal");
+  }, [goTo, onRefreshState]);
 
   const handleAnswer = useCallback(async (id: string) => {
     if (chosen) return;
@@ -1299,21 +1316,8 @@ export default function HandcraftedChapter04({
       });
     } catch (e) { console.error(e); }
 
-    setTimeout(async () => {
-      try {
-        await fetch("/api/chapter/spin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "forever", preferredRewardIndex: 0 }),
-        });
-      } catch (e) { console.error(e); }
-      if (typeof window !== "undefined") {
-        localStorage.setItem("p23_ch4_done", "true");
-      }
-      onRefreshState?.();
-      goTo("sentence-reveal");
-    }, 1800);
-  }, [chosen, goTo, onRefreshState]);
+    answerTimerRef.current = setTimeout(proceedFromAnswer, 5000);
+  }, [chosen, proceedFromAnswer]);
 
   return (
     <>
@@ -1348,6 +1352,18 @@ export default function HandcraftedChapter04({
                 }}>
                   {ANSWER_ECHOES[chosen]}
                 </p>
+                <div style={{ marginTop: "clamp(1rem, 2.5vh, 1.8rem)" }}>
+                  <button
+                    onClick={proceedFromAnswer}
+                    className="cta-link"
+                    style={{
+                      fontSize: "clamp(0.82rem, 2.4vw, 0.9rem)",
+                      color: "#C9974A",
+                    }}
+                  >
+                    continue →
+                  </button>
+                </div>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column" }}>
