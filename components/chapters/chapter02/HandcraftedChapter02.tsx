@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import confetti from "canvas-confetti";
 import { Q2_OPTIONS } from "@/lib/case-data";
 import { useThemeColor } from "@/lib/use-theme-color";
@@ -396,6 +396,21 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
     setTimeout(() => { setStage(next); setVisible(true); }, 620);
   }, []);
 
+  const handleReadAgain = useCallback(() => {
+    setChosen(null);
+    goTo("opening");
+  }, [goTo]);
+
+  const isCh3Done = typeof window !== "undefined" && localStorage.getItem("p23_ch3_done") === "true";
+  const isCh4Done = typeof window !== "undefined" && localStorage.getItem("p23_ch4_done") === "true";
+
+  const chapterTimeline = useMemo(() => [
+    { n: 1, title: "The Incident", date: "sept 20", done: true },
+    { n: 2, title: "The Sleepy", date: "sept 21", done: true },
+    { n: 3, title: "The Interrupter", date: "sept 22", done: isCh3Done },
+    { n: 4, title: "The Cover-Up", date: "sept 23", done: isCh4Done },
+  ], [isCh3Done, isCh4Done]);
+
   const proceedFromAnswer = useCallback(async () => {
     if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
     try {
@@ -494,7 +509,7 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
             <div style={{ margin: "clamp(0.8rem, 2.5vh, 1.4rem) auto" }} />
             <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(78,205,196,0.3)", marginBottom: "clamp(0.5rem, 1.8vh, 0.9rem)" }}>four chapters · four days</p>
             <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.6rem, 2.2vh, 1.2rem)" }}>
-              {CHAPTERS.map(ch => (
+              {chapterTimeline.map(ch => (
                 <div key={ch.n} style={{ display: "flex", alignItems: "center", gap: "0.8rem", padding: "clamp(0.35rem, 1.2vh, 0.55rem) 0", borderBottom: "1px solid rgba(78,205,196,0.1)", opacity: ch.done ? 1 : 0.22 }}>
                   <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.72rem", letterSpacing: "0.12em", color: ch.done ? ELECTRIC : "rgba(78,205,196,0.4)", minWidth: "1.6rem" }}>{ch.done ? "✓" : String(ch.n).padStart(2, "0")}</span>
                   <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.85rem, 2.5vw, 0.98rem)", fontStyle: ch.done ? "italic" : "normal", color: ch.done ? "#E8F8F7" : "rgba(78,205,196,0.35)", flex: 1, textAlign: "left" }}>{ch.title}</span>
@@ -530,7 +545,7 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
               </div>
             )}
 
-            <button onClick={() => goTo("opening")}
+            <button onClick={handleReadAgain}
               className="cta-link"
               style={{
                 fontSize: "clamp(0.75rem, 2vw, 0.82rem)",

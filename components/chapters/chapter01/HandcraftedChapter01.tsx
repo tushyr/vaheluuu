@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import confetti from "canvas-confetti";
 
 import { LuxuryEnvelope } from "@/components/handcrafted/LuxuryEnvelope";
@@ -287,6 +287,23 @@ export default function HandcraftedChapter01({
 
   const answerTimerRef = useRef<NodeJS.Timeout | null>(null);
   const moodTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleReadAgain = useCallback(() => {
+    setChosen(null);
+    setMoodPicked(false);
+    goTo("opening");
+  }, [goTo]);
+
+  const isCh2Done = typeof window !== "undefined" && localStorage.getItem("p23_ch2_done") === "true";
+  const isCh3Done = typeof window !== "undefined" && localStorage.getItem("p23_ch3_done") === "true";
+  const isCh4Done = typeof window !== "undefined" && localStorage.getItem("p23_ch4_done") === "true";
+
+  const chapterTimeline = useMemo(() => [
+    { n: 1, title: "The Incident", date: "sept 20", unlocked: true },
+    { n: 2, title: "The Sleepy", date: "sept 21", unlocked: isCh2Done },
+    { n: 3, title: "The Interrupter", date: "sept 22", unlocked: isCh3Done },
+    { n: 4, title: "The Cover-Up", date: "sept 23", unlocked: isCh4Done },
+  ], [isCh2Done, isCh3Done, isCh4Done]);
 
   const proceedFromAnswer = useCallback(() => {
     if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
@@ -595,7 +612,7 @@ export default function HandcraftedChapter01({
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.6rem,1.8vh,1rem)" }}>
-              {CHAPTERS.map(ch => (
+              {chapterTimeline.map(ch => (
                 <div key={ch.n} style={{
                   display: "flex", alignItems: "center", gap: "0.7rem",
                   padding: "clamp(0.35rem,1vh,0.5rem) 0",
@@ -695,7 +712,7 @@ export default function HandcraftedChapter01({
             )}
 
             <div>
-              <button onClick={() => goTo("opening")}
+              <button onClick={handleReadAgain}
                 className="cta-link"
                 style={{
                   fontSize: "clamp(0.75rem, 2vw, 0.84rem)",

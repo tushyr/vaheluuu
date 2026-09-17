@@ -200,6 +200,8 @@ export function UnfoldingLetter({ onProceedToQuestion }: UnfoldingLetterProps) {
                   margin: 0,
                   lineHeight: isSalutation ? 1.18 : 1.4,
                   letterSpacing: isSalutation ? "0.01em" : "inherit",
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
                 }}
               >
                 {seg.words.slice(0, wordsVisible).map((w, wi) => {

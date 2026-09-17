@@ -162,7 +162,12 @@ function BirthdayOpening({ visible, onComplete }: { visible: boolean; onComplete
   }, [frame]);
 
   const advance = useCallback(() => {
-    if (!showHint) return; // don't advance before lines are done
+    const current = FRAMES[frame];
+    if (!showHint) {
+      setLinesShown(current.lines.length);
+      setShowHint(true);
+      return;
+    }
     if (frame >= FRAMES.length - 1) {
       onComplete();
       return;
@@ -890,6 +895,21 @@ function FinalScreen({
     }
   }, [englishShown]);
 
+  // Sync theme-color when case summary modal opens/closes
+  useEffect(() => {
+    if (showCaseSummary) {
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", "#0E0B09");
+      document.documentElement.style.backgroundColor = "#0E0B09";
+      document.body.style.backgroundColor = "#0E0B09";
+      return () => {
+        if (meta) meta.setAttribute("content", "#F5EFE6");
+        document.documentElement.style.backgroundColor = "#F5EFE6";
+        document.body.style.backgroundColor = "#F5EFE6";
+      };
+    }
+  }, [showCaseSummary]);
+
   // Continuous glitching every 2s once the name line is visible
   useEffect(() => {
     if (englishShown < 3) return;
@@ -1275,6 +1295,11 @@ export default function HandcraftedChapter04({
     setTimeout(() => { setStage(next); setVisible(true); }, 620);
   }, []);
 
+  const handleReplay = useCallback(() => {
+    setChosen(null);
+    goTo("opening");
+  }, [goTo]);
+
   const proceedFromAnswer = useCallback(async () => {
     if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
     try {
@@ -1410,13 +1435,13 @@ export default function HandcraftedChapter04({
       )}
 
       {/* 3 — CASE FILE REVEAL */}
-      {stage === "sentence-reveal" && chosen && (
+      {stage === "sentence-reveal" && (
         <CaseReveal
           visible={visible}
           q1Val={evidenceValues.q1}
           q2Val={evidenceValues.q2}
           q3Val={evidenceValues.q3}
-          q4Val={chosen}
+          q4Val={chosen || (typeof window !== "undefined" ? localStorage.getItem("p23_q4_id") : null) || "D1"}
           onDone={() => goTo("love-reveal")}
         />
       )}
@@ -1431,8 +1456,8 @@ export default function HandcraftedChapter04({
         <FinalScreen
           visible={visible}
           evidenceValues={evidenceValues}
-          q4Val={chosen}
-          onReplay={() => goTo("opening")}
+          q4Val={chosen || (typeof window !== "undefined" ? localStorage.getItem("p23_q4_id") : null) || "D1"}
+          onReplay={handleReplay}
         />
       )}
     </>
