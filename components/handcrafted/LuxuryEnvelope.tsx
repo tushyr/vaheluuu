@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-
+import { useThemeColor } from "@/lib/use-theme-color";
 
 interface LuxuryEnvelopeProps {
   onUnseal: () => void;
@@ -23,6 +23,7 @@ function getRandomScramble(target: string) {
 }
 
 export function LuxuryEnvelope({ onUnseal, disabled = false }: LuxuryEnvelopeProps) {
+  useThemeColor("#0E0B09");
   const [phase, setPhase] = useState<Phase>("enter");
   const [displayText, setDisplayText] = useState("zaara");
   const [isGlitching, setIsGlitching] = useState(false);

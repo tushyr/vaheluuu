@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { Q2_OPTIONS } from "@/lib/case-data";
+import { useThemeColor } from "@/lib/use-theme-color";
 
 /* ─────── Types ─────── */
 interface WheelReward { id?: string; label?: string; [key: string]: unknown; }
@@ -133,24 +134,61 @@ function WildOpening({ visible, onContinue }: { visible: boolean; onContinue: ()
 
   const variantStyle = (variant: string): React.CSSProperties => {
     switch (variant) {
-      case "label":    return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 2vw, 0.72rem)", letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ELECTRIC, margin: 0, lineHeight: 1.6 };
-      case "title":    return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.8rem, 6vw, 2.8rem)", fontStyle: "italic", fontWeight: 400, color: "#E8F8F7", margin: 0, lineHeight: 1.1 };
-      case "body":     return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.94rem, 3.2vw, 1.1rem)", color: "rgba(120,160,165,0.75)", fontStyle: "italic", margin: 0, lineHeight: 1.8 };
-      case "accent":   return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.94rem, 3.2vw, 1.1rem)", color: "rgba(78,205,196,0.65)", fontStyle: "italic", margin: 0, lineHeight: 1.8 };
-      case "electric": return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.98rem, 3.3vw, 1.14rem)", color: ELECTRIC, fontStyle: "italic", margin: 0, lineHeight: 1.8 };
+      case "label":    return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ELECTRIC, margin: "0 0 0.2rem", lineHeight: 1.4 };
+      case "title":    return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.5rem, 5vw, 2.2rem)", fontStyle: "italic", fontWeight: 400, color: "#E8F8F7", margin: 0, lineHeight: 1.15 };
+      case "body":     return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.82rem, 2.6vw, 0.95rem)", color: "rgba(120,160,165,0.75)", fontStyle: "italic", margin: 0, lineHeight: 1.45 };
+      case "accent":   return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.82rem, 2.6vw, 0.95rem)", color: "rgba(78,205,196,0.65)", fontStyle: "italic", margin: 0, lineHeight: 1.45 };
+      case "electric": return { fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.85rem, 2.7vw, 1rem)", color: ELECTRIC, fontStyle: "italic", margin: 0, lineHeight: 1.45 };
       default: return {};
     }
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, height: "100dvh", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center", padding: "clamp(2.5rem,8vh,5rem) clamp(1.5rem,7vw,3.5rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", boxSizing: "border-box" }}>
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      height: "100dvh",
+      minHeight: "-webkit-fill-available",
+      width: "100vw",
+      background: BG,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      padding: "clamp(1.5rem, 4vh, 3rem) clamp(1.2rem, 5vw, 2.5rem)",
+      overflow: "hidden",
+      overscrollBehavior: "none",
+      touchAction: "none",
+      opacity: visible ? 1 : 0,
+      transition: "opacity 0.6s ease",
+      boxSizing: "border-box",
+    }}>
+      {/* Pinned skip button: stays at top right of viewport, never scrolls */}
+      <button
+        onClick={() => { setShown(OPENING.length); setShowCta(true); }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(78,205,196,0.45)",
+          opacity: showCta ? 0 : 1,
+          pointerEvents: showCta ? "none" : "auto",
+          transition: "opacity 0.3s ease",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
       <div style={{ maxWidth: "34rem", width: "100%" }}>
         {OPENING.slice(0, shown).map((entry, i) => {
-          if ("gap" in entry) return <div key={i} style={{ height: "clamp(1rem,3vh,1.5rem)" }} />;
+          if ("gap" in entry) return <div key={i} style={{ height: "clamp(0.35rem, 1.2vh, 0.65rem)" }} />;
           const animCls = ("variant" in entry && (entry.variant === "electric" || entry.variant === "accent")) ? "letter-expand" : "fade-up";
           return <p key={i} className={animCls} style={variantStyle(entry.variant)}>{entry.text}</p>;
         })}
-        <div style={{ marginTop: "clamp(2rem,5vh,3rem)", opacity: showCta ? 1 : 0, transform: showCta ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.8s ease, transform 0.8s ease", pointerEvents: showCta ? "auto" : "none" }}>
+        <div style={{ marginTop: "clamp(1rem, 2.8vh, 1.8rem)", opacity: showCta ? 1 : 0, transform: showCta ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.8s ease, transform 0.8s ease", pointerEvents: showCta ? "auto" : "none" }}>
           <button onClick={onContinue}
             className="cta-link"
             style={{
@@ -168,6 +206,7 @@ function WildOpening({ visible, onContinue }: { visible: boolean; onContinue: ()
 
 /* ─────── Gift reveal (warm ivory — the gift is warmth) ─────── */
 function GiftReveal({ visible, onDone }: { visible: boolean; onDone: () => void }) {
+  useThemeColor("#F5EFE6");
   const [shown, setShown] = useState(0);
   const [showCta, setShowCta] = useState(false);
 
@@ -184,13 +223,50 @@ function GiftReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
   }, []);
 
   return (
-    <div style={{ position: "fixed", inset: 0, height: "100dvh", width: "100vw", background: "#F5EFE6", display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center", padding: "clamp(2.5rem,8vh,5rem) clamp(1.5rem,6vw,3rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", boxSizing: "border-box" }}>
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      height: "100dvh",
+      minHeight: "-webkit-fill-available",
+      width: "100vw",
+      background: "#F5EFE6",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      padding: "clamp(1.5rem, 4vh, 3rem) clamp(1.2rem, 5vw, 2.5rem)",
+      overflow: "hidden",
+      overscrollBehavior: "none",
+      touchAction: "none",
+      opacity: visible ? 1 : 0,
+      transition: "opacity 0.6s ease",
+      boxSizing: "border-box",
+    }}>
+      {/* Pinned skip button: stays at top right of viewport, never scrolls */}
+      <button
+        onClick={() => { setShown(GIFT_LINES.length); setShowCta(true); }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(140,122,104,0.5)",
+          opacity: showCta ? 0 : 1,
+          pointerEvents: showCta ? "none" : "auto",
+          transition: "opacity 0.3s ease",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
       <div style={{ maxWidth: "34rem", width: "100%" }}>
         {GIFT_LINES.slice(0, shown).map((line, i) => {
-          if ("gap" in line) return <div key={i} style={{ height: "0.8rem" }} />;
-          return <p key={i} className="fade-up" style={{ fontFamily: "'Playfair Display', serif", fontSize: (line as any).size ?? "clamp(0.94rem, 3.2vw, 1.1rem)", fontStyle: (line as any).italic ? "italic" : "normal", fontWeight: 400, color: (line as any).color ?? "#1C1510", margin: 0, lineHeight: 1.8 }}>{(line as any).text}</p>;
+          if ("gap" in line) return <div key={i} style={{ height: "0.5rem" }} />;
+          return <p key={i} className="fade-up" style={{ fontFamily: "'Playfair Display', serif", fontSize: (line as any).size ?? "clamp(0.82rem, 2.6vw, 0.96rem)", fontStyle: (line as any).italic ? "italic" : "normal", fontWeight: 400, color: (line as any).color ?? "#1C1510", margin: 0, lineHeight: 1.55 }}>{(line as any).text}</p>;
         })}
-        <div style={{ marginTop: "clamp(1.8rem,4.5vh,2.8rem)", opacity: showCta ? 1 : 0, transform: showCta ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.7s ease, transform 0.7s ease", pointerEvents: showCta ? "auto" : "none" }}>
+        <div style={{ marginTop: "clamp(1rem, 2.8vh, 1.8rem)", opacity: showCta ? 1 : 0, transform: showCta ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.7s ease, transform 0.7s ease", pointerEvents: showCta ? "auto" : "none" }}>
           <button onClick={onDone}
             className="cta-link"
             style={{
@@ -219,15 +295,62 @@ function WildReflection({ visible, word, onContinue }: { visible: boolean; word:
     lines.forEach((_, i) => { acc += delays[i] ?? 900; timers.push(setTimeout(() => setShown(i + 1), acc)); });
     timers.push(setTimeout(() => setShowCta(true), acc + 1400));
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [lines]);
 
   return (
-    <div style={{ position: "fixed", inset: 0, height: "100dvh", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center", padding: "clamp(2.5rem,8vh,5rem) clamp(1.5rem,7vw,3.5rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", boxSizing: "border-box" }}>
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      height: "100dvh",
+      minHeight: "-webkit-fill-available",
+      width: "100vw",
+      background: BG,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      padding: "clamp(1.5rem, 4vh, 3rem) clamp(1.2rem, 5vw, 2.5rem)",
+      overflow: "hidden",
+      overscrollBehavior: "none",
+      touchAction: "none",
+      opacity: visible ? 1 : 0,
+      transition: "opacity 0.6s ease",
+      boxSizing: "border-box",
+    }}>
+      {/* Pinned skip button */}
+      <button
+        onClick={() => { setShown(lines.length); setShowCta(true); }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(78,205,196,0.45)",
+          opacity: showCta ? 0 : 1,
+          pointerEvents: showCta ? "none" : "auto",
+          transition: "opacity 0.3s ease",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
       <div style={{ maxWidth: "32rem", width: "100%" }}>
         {lines.slice(0, shown).map((line, i) => (
-          <p key={i} className="fade-up" style={{ fontFamily: "'Playfair Display', serif", fontSize: i === 0 ? "clamp(1.8rem, 6vw, 2.8rem)" : i <= 2 ? "clamp(1.05rem, 3.4vw, 1.3rem)" : "clamp(0.94rem, 3.2vw, 1.12rem)", fontStyle: i >= 3 ? "italic" : "normal", fontWeight: 400, color: i === 0 ? ELECTRIC : i <= 2 ? "#E8F8F7" : "rgba(78,205,196,0.65)", margin: 0, lineHeight: 1.8, marginBottom: i === 0 ? "clamp(1rem,3vh,1.6rem)" : "0.3rem", whiteSpace: "pre-line" }}>{line}</p>
+          <p key={i} className="fade-up" style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: i === 0 ? "clamp(1.4rem, 4.8vw, 2rem)" : i <= 2 ? "clamp(0.92rem, 2.8vw, 1.1rem)" : "clamp(0.82rem, 2.6vw, 0.96rem)",
+            fontStyle: i >= 3 ? "italic" : "normal",
+            fontWeight: 400,
+            color: i === 0 ? ELECTRIC : i <= 2 ? "#E8F8F7" : "rgba(78,205,196,0.65)",
+            margin: 0,
+            lineHeight: 1.55,
+            marginBottom: i === 0 ? "clamp(0.8rem, 2vh, 1.2rem)" : "0.25rem",
+            whiteSpace: "pre-line",
+          }}>{line}</p>
         ))}
-        <div style={{ marginTop: "clamp(2rem,5vh,3rem)", opacity: showCta ? 1 : 0, transform: showCta ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.8s ease, transform 0.8s ease", pointerEvents: showCta ? "auto" : "none" }}>
+        <div style={{ marginTop: "clamp(1rem, 2.8vh, 1.8rem)", opacity: showCta ? 1 : 0, transform: showCta ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.8s ease, transform 0.8s ease", pointerEvents: showCta ? "auto" : "none" }}>
           <button onClick={onContinue}
             className="cta-link"
             style={{
@@ -259,6 +382,8 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
     if (typeof window !== "undefined" && localStorage.getItem("p23_ch2_done") === "true") return "horizon";
     return "opening";
   });
+  useThemeColor(stage === "gift-reveal" ? "#F5EFE6" : BG);
+
   const [visible, setVisible] = useState(true);
   const [chosen, setChosen] = useState<string | null>(null);
   const [hoveredAnswer, setHoveredAnswer] = useState<string | null>(null);
@@ -303,7 +428,7 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
       {stage === "opening" && <WildOpening visible={visible} onContinue={() => goTo("question")} />}
 
       {stage === "question" && (
-        <div style={{ position: "fixed", inset: 0, height: "100dvh", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "clamp(1.5rem,5vh,3.5rem) clamp(1.2rem,6vw,2.5rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", pointerEvents: visible ? "auto" : "none", boxSizing: "border-box" } as React.CSSProperties}>
+        <div style={{ position: "fixed", inset: 0, height: "100dvh", minHeight: "-webkit-fill-available", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "clamp(1.5rem,5vh,3.5rem) clamp(1.2rem,6vw,2.5rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", pointerEvents: visible ? "auto" : "none", boxSizing: "border-box" } as React.CSSProperties}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100%", width: "100%" }}>
             <div style={{ width: "100%", maxWidth: "34rem" }}>
             <div className="label-accent" style={{ marginBottom: "clamp(1rem,3vh,2rem)" }}>
@@ -340,37 +465,37 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
       {stage === "gift-reveal" && <GiftReveal visible={visible} onDone={() => goTo("horizon")} />}
 
       {stage === "horizon" && (
-        <div style={{ position: "fixed", inset: 0, height: "100dvh", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "clamp(2rem,6vh,4rem) clamp(1.2rem,6vw,2.5rem)", overflowY: "auto", overflowX: "hidden", scrollbarWidth: "none", overscrollBehavior: "none", touchAction: "pan-y", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", pointerEvents: visible ? "auto" : "none", boxSizing: "border-box" }}>
-          <div style={{ width: "100%", maxWidth: "34rem", textAlign: "center", paddingBottom: "1rem" }}>
-            <div className="label-accent" style={{ justifyContent: "center", marginBottom: "clamp(1rem,3vh,2rem)" }}>
-              <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 2vw, 0.72rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: ELECTRIC, margin: 0 }}>chapter two · the sleepy</p>
+        <div style={{ position: "fixed", inset: 0, height: "100dvh", minHeight: "-webkit-fill-available", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "clamp(1.2rem, 3.5vh, 2.2rem) clamp(1.2rem, 5vw, 2.2rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", pointerEvents: visible ? "auto" : "none", boxSizing: "border-box" }}>
+          <div style={{ width: "100%", maxWidth: "34rem", textAlign: "center" }}>
+            <div className="label-accent" style={{ justifyContent: "center", marginBottom: "clamp(0.6rem, 2vh, 1.2rem)" }}>
+              <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: ELECTRIC, margin: 0 }}>chapter two · the sleepy</p>
             </div>
-            <p className="font-display fade-up" style={{ fontSize: "clamp(0.98rem, 3vw, 1.25rem)", fontStyle: "italic", fontWeight: 400, color: "rgba(78,205,196,0.6)", lineHeight: 1.7, margin: 0 }}>
+            <p className="font-display fade-up" style={{ fontSize: "clamp(0.92rem, 2.8vw, 1.15rem)", fontStyle: "italic", fontWeight: 400, color: "rgba(78,205,196,0.6)", lineHeight: 1.6, margin: 0 }}>
               two down.<br />charge your phone.<br />come back tomorrow.
             </p>
-            <div style={{ margin: "clamp(1rem,4vh,2rem) auto" }} />
-            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.68rem, 2.2vw, 0.76rem)", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(78,205,196,0.3)", marginBottom: "clamp(0.8rem,2.5vh,1.4rem)" }}>four chapters · four days</p>
-            <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.8rem,3vh,1.8rem)" }}>
+            <div style={{ margin: "clamp(0.8rem, 2.5vh, 1.4rem) auto" }} />
+            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(78,205,196,0.3)", marginBottom: "clamp(0.5rem, 1.8vh, 0.9rem)" }}>four chapters · four days</p>
+            <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.6rem, 2.2vh, 1.2rem)" }}>
               {CHAPTERS.map(ch => (
-                <div key={ch.n} style={{ display: "flex", alignItems: "center", gap: "0.8rem", padding: "clamp(0.55rem,1.8vh,0.75rem) 0", borderBottom: "1px solid rgba(78,205,196,0.1)", opacity: ch.done ? 1 : 0.22 }}>
+                <div key={ch.n} style={{ display: "flex", alignItems: "center", gap: "0.8rem", padding: "clamp(0.35rem, 1.2vh, 0.55rem) 0", borderBottom: "1px solid rgba(78,205,196,0.1)", opacity: ch.done ? 1 : 0.22 }}>
                   <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.72rem", letterSpacing: "0.12em", color: ch.done ? ELECTRIC : "rgba(78,205,196,0.4)", minWidth: "1.6rem" }}>{ch.done ? "✓" : String(ch.n).padStart(2, "0")}</span>
-                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.92rem, 2.6vw, 1.08rem)", fontStyle: ch.done ? "italic" : "normal", color: ch.done ? "#E8F8F7" : "rgba(78,205,196,0.35)", flex: 1, textAlign: "left" }}>{ch.title}</span>
-                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.65rem, 2vw, 0.74rem)", letterSpacing: "0.16em", color: ch.done ? ELECTRIC : "rgba(78,205,196,0.25)", textTransform: "uppercase" }}>{ch.date}</span>
+                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.85rem, 2.5vw, 0.98rem)", fontStyle: ch.done ? "italic" : "normal", color: ch.done ? "#E8F8F7" : "rgba(78,205,196,0.35)", flex: 1, textAlign: "left" }}>{ch.title}</span>
+                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.16em", color: ch.done ? ELECTRIC : "rgba(78,205,196,0.25)", textTransform: "uppercase" }}>{ch.date}</span>
                 </div>
               ))}
             </div>
             {!countdownExpired && countdownDisplay && (
-              <div className="fade-up" style={{ marginBottom: "clamp(0.8rem,3vh,1.8rem)" }}>
-                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.68rem, 2.2vw, 0.75rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(78,205,196,0.45)", marginBottom: "0.4rem" }}>chapter three opens in</p>
-                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.2rem, 3.8vw, 1.6rem)", fontStyle: "italic", color: ELECTRIC, letterSpacing: "0.06em" }}>{countdownDisplay}</p>
+              <div className="fade-up" style={{ marginBottom: "clamp(0.6rem, 2vh, 1.2rem)" }}>
+                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(78,205,196,0.45)", marginBottom: "0.3rem" }}>chapter three opens in</p>
+                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.1rem, 3.4vw, 1.45rem)", fontStyle: "italic", color: ELECTRIC, letterSpacing: "0.06em", margin: 0 }}>{countdownDisplay}</p>
               </div>
             )}
             {countdownExpired && (
-              <div className="fade-up" style={{ marginBottom: "clamp(1rem,3vh,2rem)" }}>
+              <div className="fade-up" style={{ marginBottom: "clamp(0.8rem, 2vh, 1.4rem)" }}>
                 <p className="font-hand" style={{
-                  fontSize: "clamp(1.02rem, 3vw, 1.25rem)",
+                  fontSize: "clamp(0.95rem, 2.8vw, 1.15rem)",
                   color: ELECTRIC,
-                  marginBottom: "0.8rem",
+                  marginBottom: "0.5rem",
                 }}>
                   chapter three is waiting for you ✦
                 </p>
@@ -378,7 +503,7 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
                   onClick={() => { onRefreshState?.(); window.location.reload(); }}
                   className="cta-link"
                   style={{
-                    fontSize: "clamp(0.85rem, 2.5vw, 0.95rem)",
+                    fontSize: "clamp(0.82rem, 2.4vw, 0.9rem)",
                     color: "#E8F8F7",
                   }}
                 >
@@ -390,9 +515,9 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
             <button onClick={() => goTo("opening")}
               className="cta-link"
               style={{
-                fontSize: "clamp(0.78rem, 2.2vw, 0.86rem)",
+                fontSize: "clamp(0.75rem, 2vw, 0.82rem)",
                 color: "rgba(78,205,196,0.6)",
-                marginTop: "clamp(0.5rem,2vh,1rem)",
+                marginTop: "clamp(0.3rem, 1.5vh, 0.8rem)",
               }}
             >
               ↺ read again

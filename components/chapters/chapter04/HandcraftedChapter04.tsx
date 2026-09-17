@@ -5,6 +5,7 @@ import confetti from "canvas-confetti";
 
 
 import { Q4_OPTIONS, getCaseOutcome } from "@/lib/case-data";
+import { useThemeColor } from "@/lib/use-theme-color";
 
 /* ─────── Types ─────── */
 interface WheelReward { id?: string; label?: string; [key: string]: unknown; }
@@ -203,6 +204,8 @@ function BirthdayOpening({ visible, onComplete }: { visible: boolean; onComplete
     }
   };
 
+  useThemeColor(current.bg ?? "#0E0B09");
+
   return (
     <div
       onClick={advance}
@@ -210,6 +213,7 @@ function BirthdayOpening({ visible, onComplete }: { visible: boolean; onComplete
         position: "fixed",
         inset: 0,
         height: "100dvh",
+        minHeight: "-webkit-fill-available",
         width: "100vw",
         background: current.bg ?? "#0E0B09",
         display: "flex", flexDirection: "column",
@@ -224,6 +228,22 @@ function BirthdayOpening({ visible, onComplete }: { visible: boolean; onComplete
         boxSizing: "border-box",
       } as React.CSSProperties}
     >
+      {/* Pinned skip button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onComplete(); }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(122,104,88,0.6)",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
       <div
         style={{
           maxWidth: "30rem", width: "100%",
@@ -288,6 +308,7 @@ function CaseReveal({
   q4Val?: string | null;
   onDone: () => void;
 }) {
+  useThemeColor("#F5EFE6");
   const [phase, setPhase] = useState(0);
   const [showCta, setShowCta] = useState(false);
 
@@ -327,113 +348,114 @@ function CaseReveal({
       position: "fixed",
       inset: 0,
       height: "100dvh",
+      minHeight: "-webkit-fill-available",
       width: "100vw",
       background: "#F5EFE6",
       display: "flex", flexDirection: "column",
       alignItems: "flex-start", justifyContent: "center",
-      padding: "clamp(2.5rem,8vh,5rem) clamp(1.5rem,6vw,3rem)",
-      overflowY: "auto", overflowX: "hidden", scrollbarWidth: "none",
+      padding: "clamp(1.5rem, 4vh, 3rem) clamp(1.2rem, 5vw, 2.5rem)",
+      overflow: "hidden",
       overscrollBehavior: "none",
-      touchAction: "pan-y",
+      touchAction: "none",
       opacity: visible ? 1 : 0, transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      <div style={{ maxWidth: "36rem", width: "100%" }}>
+      {/* Pinned skip button */}
+      <button
+        onClick={() => { setPhase(14); setShowCta(true); }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(140,122,104,0.5)",
+          opacity: showCta ? 0 : 1,
+          pointerEvents: showCta ? "none" : "auto",
+          transition: "opacity 0.3s ease",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
+      <div style={{ maxWidth: "34rem", width: "100%" }}>
 
         {/* 1. Header */}
         {phase >= 1 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.62rem, 2vw, 0.72rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "#8C7A68", margin: 0 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "#8C7A68", margin: 0 })}>
             case file: us
           </p>
         )}
         {phase >= 2 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.62rem, 2vw, 0.72rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "#C9974A", margin: "0.3rem 0 0" })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "#C9974A", margin: "0.2rem 0 0" })}>
             status: deeply suspicious
           </p>
         )}
 
         {/* Divider 1 */}
-        {phase >= 3 && <GoldLine width="100%" margin="clamp(1rem,3vh,1.6rem) 0" />}
+        {phase >= 3 && <div style={{ height: "clamp(0.4rem, 1.2vh, 0.7rem)" }} />}
 
         {/* 2. Selected Evidence */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "clamp(0.7rem,1.8vh,1rem)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.22rem" }}>
           {phase >= 4 && (
-            <div className="fade-up">
-              <p style={serif({ fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8C7A68", margin: "0 0 0.15rem" })}>
-                evidence 01
-              </p>
-              <p style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.55 })}>
-                &ldquo;{q1.label}&rdquo;
-              </p>
-            </div>
+            <p className="fade-up" style={serif({ fontSize: "clamp(0.78rem, 2.4vw, 0.9rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.35 })}>
+              <span style={{ fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.14em", textTransform: "uppercase", color: "#8C7A68", fontStyle: "normal", marginRight: "0.4rem" }}>01 ·</span>
+              &ldquo;{q1.label}&rdquo;
+            </p>
           )}
 
           {phase >= 5 && (
-            <div className="fade-up">
-              <p style={serif({ fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8C7A68", margin: "0 0 0.15rem" })}>
-                evidence 02
-              </p>
-              <p style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.55 })}>
-                &ldquo;{q2.label}&rdquo;
-              </p>
-            </div>
+            <p className="fade-up" style={serif({ fontSize: "clamp(0.78rem, 2.4vw, 0.9rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.35 })}>
+              <span style={{ fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.14em", textTransform: "uppercase", color: "#8C7A68", fontStyle: "normal", marginRight: "0.4rem" }}>02 ·</span>
+              &ldquo;{q2.label}&rdquo;
+            </p>
           )}
 
           {phase >= 6 && (
-            <div className="fade-up">
-              <p style={serif({ fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8C7A68", margin: "0 0 0.15rem" })}>
-                evidence 03
-              </p>
-              <p style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.55 })}>
-                &ldquo;{q3.label}&rdquo;
-              </p>
-            </div>
+            <p className="fade-up" style={serif({ fontSize: "clamp(0.78rem, 2.4vw, 0.9rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.35 })}>
+              <span style={{ fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.14em", textTransform: "uppercase", color: "#8C7A68", fontStyle: "normal", marginRight: "0.4rem" }}>03 ·</span>
+              &ldquo;{q3.label}&rdquo;
+            </p>
           )}
 
           {phase >= 7 && (
-            <div className="fade-up">
-              <p style={serif({ fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.18em", textTransform: "uppercase", color: "#8C7A68", margin: "0 0 0.15rem" })}>
-                evidence 04
-              </p>
-              <p style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.55 })}>
-                &ldquo;{q4.label}&rdquo;
-              </p>
-            </div>
+            <p className="fade-up" style={serif({ fontSize: "clamp(0.78rem, 2.4vw, 0.9rem)", fontStyle: "italic", color: "#1C1510", margin: 0, lineHeight: 1.35 })}>
+              <span style={{ fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.14em", textTransform: "uppercase", color: "#8C7A68", fontStyle: "normal", marginRight: "0.4rem" }}>04 ·</span>
+              &ldquo;{q4.label}&rdquo;
+            </p>
           )}
         </div>
 
         {/* Divider 2 */}
-        {phase >= 8 && <GoldLine width="100%" margin="clamp(1.2rem,3.2vh,1.8rem) 0" />}
+        {phase >= 8 && <div style={{ height: "clamp(0.4rem, 1.2vh, 0.7rem)" }} />}
 
         {/* 3. 81-State Outcome Interpretation */}
         {phase >= 9 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.68rem, 2vw, 0.76rem)", letterSpacing: "0.18em", textTransform: "uppercase", color: "#C9974A", margin: "0 0 0.6rem" })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.18em", textTransform: "uppercase", color: "#C9974A", margin: "0 0 0.25rem" })}>
             after reviewing the evidence...
           </p>
         )}
 
         {phase >= 10 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.12rem)", fontStyle: "italic", color: "#3A2C22", margin: "0 0 0.4rem", lineHeight: 1.65 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.8rem, 2.5vw, 0.92rem)", fontStyle: "italic", color: "#3A2C22", margin: "0 0 0.2rem", lineHeight: 1.35 })}>
             {outcome.setup}
           </p>
         )}
 
         {phase >= 11 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(1.05rem, 3.2vw, 1.25rem)", fontWeight: 600, fontStyle: "italic", color: "#1C1510", margin: "0.2rem 0 0", lineHeight: 1.5 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.92rem, 2.8vw, 1.08rem)", fontWeight: 600, fontStyle: "italic", color: "#1C1510", margin: "0.15rem 0 0", lineHeight: 1.35 })}>
             {outcome.punchline}
           </p>
         )}
 
         {/* Divider 3 */}
-        {phase >= 12 && <GoldLine width="100%" margin="clamp(1.2rem,3.2vh,1.8rem) 0" />}
+        {phase >= 12 && <div style={{ height: "clamp(0.4rem, 1.2vh, 0.7rem)" }} />}
 
         {/* 4. Emotional Turn (Option D - 'very you') */}
         {phase >= 13 && (
-          <div className="fade-up" style={{ marginBottom: "0.6rem" }}>
-            <p style={serif({ fontSize: "clamp(0.88rem, 2.4vw, 1rem)", fontStyle: "italic", color: "#8C7A68", margin: "0 0 0.2rem" })}>
-              hmm.
-            </p>
-            <p style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.12rem)", fontStyle: "italic", color: "#3A2C22", margin: 0, lineHeight: 1.7 })}>
+          <div className="fade-up" style={{ margin: "0.3rem 0 0.15rem" }}>
+            <p style={serif({ fontSize: "clamp(0.8rem, 2.5vw, 0.92rem)", fontStyle: "italic", color: "#3A2C22", margin: 0, lineHeight: 1.4 })}>
               after four days of evidence, i think we&apos;ve established one thing:<br />
               <strong style={{ fontWeight: 600, color: "#1C1510" }}>we are absolutely ridiculous.</strong>
             </p>
@@ -441,11 +463,11 @@ function CaseReveal({
         )}
 
         {phase >= 14 && (
-          <div className="fade-up" style={{ margin: "0.8rem 0" }}>
-            <p style={serif({ fontSize: "clamp(0.98rem, 3vw, 1.15rem)", fontStyle: "italic", color: "#1C1510", margin: "0 0 0.3rem", lineHeight: 1.6 })}>
+          <div className="fade-up" style={{ margin: "0.35rem 0 0" }}>
+            <p style={serif({ fontSize: "clamp(0.82rem, 2.6vw, 0.95rem)", fontStyle: "italic", color: "#1C1510", margin: "0 0 0.15rem", lineHeight: 1.35 })}>
               objectively, we&apos;re a terrible idea.
             </p>
-            <p style={serif({ fontSize: "clamp(1.05rem, 3.4vw, 1.3rem)", fontStyle: "italic", fontWeight: 600, color: "#C9974A", margin: 0, lineHeight: 1.5 })}>
+            <p style={serif({ fontSize: "clamp(0.92rem, 2.8vw, 1.1rem)", fontStyle: "italic", fontWeight: 600, color: "#C9974A", margin: 0, lineHeight: 1.35 })}>
               personally, i think you&apos;re the best one i ever had.
             </p>
           </div>
@@ -453,7 +475,7 @@ function CaseReveal({
 
         {/* CTA */}
         <div style={{
-          marginTop: "clamp(1.8rem,4vh,2.8rem)",
+          marginTop: "clamp(0.8rem, 2.2vh, 1.4rem)",
           opacity: showCta ? 1 : 0,
           transform: showCta ? "translateY(0)" : "translateY(8px)",
           transition: "opacity 0.7s ease, transform 0.7s ease",
@@ -570,19 +592,21 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
     return () => t.forEach(clearTimeout);
   }, []);
 
+  useThemeColor("#0E0B09");
+
   // Helpers for rendering
   const serif = (extra?: React.CSSProperties): React.CSSProperties => ({
     fontFamily: "'Playfair Display', serif", ...extra,
   });
 
   const plainGiftEl = (text: string, key: number) => (
-    <p key={key} className="fade-up" style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#3A2C22", margin: 0, lineHeight: 1.8 })}>
+    <p key={key} className="fade-up" style={serif({ fontSize: "clamp(0.82rem, 2.6vw, 0.94rem)", fontStyle: "italic", color: "#3A2C22", margin: 0, lineHeight: 1.4 })}>
       {text}
     </p>
   );
 
   const highlightGiftEl = (g: typeof LOVE_GIFTS[0], key: number) => (
-    <p key={key} className="fade-up" style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#7A6858", margin: 0, lineHeight: 1.8 })}>
+    <p key={key} className="fade-up" style={serif({ fontSize: "clamp(0.82rem, 2.6vw, 0.94rem)", fontStyle: "italic", color: "#7A6858", margin: 0, lineHeight: 1.4 })}>
       {g.prefix}
       <span style={{ color: "#C9974A", fontStyle: "normal", letterSpacing: "0.02em" }}>{g.highlight}</span>
       {g.suffix}
@@ -594,31 +618,58 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
       position: "fixed",
       inset: 0,
       height: "100dvh",
+      minHeight: "-webkit-fill-available",
       width: "100vw",
       background: "#0E0B09",
       display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center",
-      padding: "clamp(2.5rem,8vh,5rem) clamp(1.5rem,6vw,3rem)",
-      overflowY: "auto", overflowX: "hidden", scrollbarWidth: "none",
+      padding: "clamp(1.5rem, 4vh, 3rem) clamp(1.2rem, 5vw, 2.5rem)",
+      overflow: "hidden",
       overscrollBehavior: "none",
-      touchAction: "pan-y",
+      touchAction: "none",
       opacity: visible ? 1 : 0, transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
+      {/* Pinned skip button */}
+      <button
+        onClick={() => {
+          setPhase(12);
+          setLetterStates(new Array(7).fill("gold"));
+          setShowJoke(false);
+          setShowLoveWord(true);
+          setShowAlways(true);
+          setShowCta(true);
+        }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(201,151,74,0.5)",
+          opacity: showCta ? 0 : 1,
+          pointerEvents: showCta ? "none" : "auto",
+          transition: "opacity 0.3s ease",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
       <div style={{ maxWidth: "34rem", width: "100%" }}>
 
         {/* Intro — spoken directly to her */}
         {phase >= 1 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#46392C", margin: 0, lineHeight: 1.75 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.82rem, 2.6vw, 0.94rem)", fontStyle: "italic", color: "#46392C", margin: 0, lineHeight: 1.4 })}>
             you thought i was just being chaotic.
           </p>
         )}
         {phase >= 2 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.94rem, 3vw, 1.1rem)", fontStyle: "italic", color: "#F5EFE6", margin: 0, lineHeight: 1.75 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.82rem, 2.6vw, 0.94rem)", fontStyle: "italic", color: "#F5EFE6", margin: "0.15rem 0 0", lineHeight: 1.4 })}>
             classic.
           </p>
         )}
         {phase >= 3 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.98rem, 3vw, 1.15rem)", fontStyle: "italic", color: "#C9974A", margin: "clamp(0.4rem,1.5vh,0.8rem) 0 clamp(1rem,3vh,1.6rem)", lineHeight: 1.6 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.85rem, 2.7vw, 1rem)", fontStyle: "italic", color: "#C9974A", margin: "clamp(0.3rem, 1vh, 0.6rem) 0 clamp(0.5rem, 1.5vh, 1rem)", lineHeight: 1.35 })}>
             each one hid something.
           </p>
         )}
@@ -631,14 +682,14 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
 
         {/* Transition: "look at the first letters." */}
         {phase === 8 && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.98rem, 3vw, 1.15rem)", fontStyle: "italic", color: "#C9974A", margin: "clamp(1rem,3vh,1.6rem) 0 0", lineHeight: 1.6 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.85rem, 2.7vw, 1rem)", fontStyle: "italic", color: "#C9974A", margin: "clamp(0.5rem, 1.5vh, 1rem) 0 0", lineHeight: 1.35 })}>
             look at the first letters.
           </p>
         )}
 
         {/* Highlighted gifts (phases 9-12) */}
         {phase >= 9 && (
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
             {phase >= 9  && highlightGiftEl(LOVE_GIFTS[0], 0)}
             {phase >= 10 && highlightGiftEl(LOVE_GIFTS[1], 1)}
             {phase >= 11 && highlightGiftEl(LOVE_GIFTS[2], 2)}
@@ -648,7 +699,7 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
 
         {/* L · O · V · E · Y · O · U — each letter flashes its chapter color then settles gold */}
         {phase >= 12 && (
-          <div style={{ display: "flex", alignItems: "center", gap: "clamp(0.3rem,1.5vw,0.65rem)", flexWrap: "wrap", marginTop: "clamp(1.4rem,4vh,2rem)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "clamp(0.25rem, 1.2vw, 0.5rem)", flexWrap: "wrap", marginTop: "clamp(0.8rem, 2.5vh, 1.4rem)" }}>
             {LOVE_LETTERS.map((letter, i) => {
               const state = letterStates[i];
               const color = state === "idle"
@@ -660,7 +711,7 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
                 <React.Fragment key={i}>
                   <span style={{
                     fontFamily: "'Playfair Display', serif",
-                    fontSize: "clamp(1.5rem, 5vw, 2.2rem)",
+                    fontSize: "clamp(1.3rem, 4.5vw, 1.8rem)",
                     fontWeight: 400,
                     color,
                     transition: "color 0.45s ease",
@@ -669,7 +720,7 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
                     {letter}
                   </span>
                   {i < LOVE_LETTERS.length - 1 && (
-                    <span style={{ color: "rgba(70,57,44,0.12)", fontSize: "clamp(0.7rem, 2vw, 0.9rem)" }}>·</span>
+                    <span style={{ color: "rgba(70,57,44,0.12)", fontSize: "clamp(0.65rem, 1.8vw, 0.8rem)" }}>·</span>
                   )}
                 </React.Fragment>
               );
@@ -679,9 +730,9 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
 
         {/* "yeah okay i made this up but still" — flashes then fades */}
         <p className="font-hand" style={{
-          fontSize: "clamp(1.05rem, 3.4vw, 1.35rem)",
+          fontSize: "clamp(0.95rem, 3vw, 1.2rem)",
           color: "#C9974A",
-          margin: "clamp(0.8rem,2.5vh,1.4rem) 0 0",
+          margin: "clamp(0.4rem, 1.5vh, 0.8rem) 0 0",
           lineHeight: 1.2,
           opacity: showJoke ? 1 : 0,
           transition: showJoke ? "opacity 0.5s ease" : "opacity 0.6s ease",
@@ -692,21 +743,21 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
 
         {/* love you. */}
         {showLoveWord && (
-          <p className="font-hand fade-up" style={{ fontSize: "clamp(1.8rem, 6vw, 2.8rem)", color: "#C4687A", margin: "clamp(0.8rem,2.5vh,1.4rem) 0 0", lineHeight: 1.2 }}>
+          <p className="font-hand fade-up" style={{ fontSize: "clamp(1.5rem, 5vw, 2.2rem)", color: "#C4687A", margin: "clamp(0.4rem, 1.5vh, 0.8rem) 0 0", lineHeight: 1.15 }}>
             love you.
           </p>
         )}
 
         {/* always been the plan. catch up. */}
         {showAlways && (
-          <p className="fade-up" style={serif({ fontSize: "clamp(0.8rem, 2.2vw, 0.9rem)", fontStyle: "italic", color: "#46392C", margin: "clamp(0.6rem,2vh,1rem) 0 0", lineHeight: 1.6 })}>
+          <p className="fade-up" style={serif({ fontSize: "clamp(0.75rem, 2vw, 0.85rem)", fontStyle: "italic", color: "#46392C", margin: "clamp(0.3rem, 1vh, 0.6rem) 0 0", lineHeight: 1.4 })}>
             always been the plan. catch up.
           </p>
         )}
 
         {/* CTA */}
         <div style={{
-          marginTop: "clamp(1.8rem,4vh,2.8rem)",
+          marginTop: "clamp(0.8rem, 2.2vh, 1.4rem)",
           opacity: showCta ? 1 : 0,
           transform: showCta ? "translateY(0)" : "translateY(8px)",
           transition: "opacity 0.7s ease, transform 0.7s ease",
@@ -783,6 +834,7 @@ function FinalScreen({
   q4Val: string | null;
   onReplay: () => void;
 }) {
+  useThemeColor("#F5EFE6");
   const [urduShown, setUrduShown] = useState(0);
   const [urduVisible, setUrduVisible] = useState(true);
   const [urduRemoved, setUrduRemoved] = useState(false);
@@ -882,16 +934,16 @@ function FinalScreen({
 
   const renderLines = (lines: FinalEntry[], shown: number) =>
     lines.slice(0, shown).map((line, i) => {
-      if ("gap" in line) return <div key={i} style={{ height: "0.75rem" }} />;
+      if ("gap" in line) return <div key={i} style={{ height: "0.3rem" }} />;
       return (
         <p key={i} className="fade-up" style={{
           fontFamily: line.urdu ? "'Noto Nastaliq Urdu', serif" : "'Playfair Display', serif",
-          fontSize: line.size ?? "clamp(0.94rem, 3vw, 1.1rem)",
+          fontSize: line.size ?? "clamp(0.85rem, 2.6vw, 0.98rem)",
           fontStyle: line.italic ? "italic" : "normal",
           fontWeight: line.bold ? 600 : 400,
           color: line.color ?? "#1C1510",
           margin: 0,
-          lineHeight: line.urdu ? 2.2 : 1.85,
+          lineHeight: line.urdu ? 1.75 : 1.5,
           direction: line.urdu ? "rtl" : "ltr",
           textAlign: line.urdu ? "right" : "center",
           width: "100%",
@@ -906,17 +958,42 @@ function FinalScreen({
       position: "fixed",
       inset: 0,
       height: "100dvh",
+      minHeight: "-webkit-fill-available",
       width: "100vw",
       background: "#F5EFE6",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
-      padding: "clamp(2rem,6vh,4rem) clamp(1.5rem,6vw,3rem)",
-      overflowY: "auto", overflowX: "hidden", scrollbarWidth: "none",
+      padding: "clamp(1.5rem, 4vh, 3rem) clamp(1.2rem, 5vw, 2.5rem)",
+      overflow: "hidden",
       overscrollBehavior: "none",
-      touchAction: "pan-y",
+      touchAction: "none",
       opacity: visible ? 1 : 0, transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
+      {/* Pinned skip button: allows skipping Urdu animation */}
+      <button
+        onClick={() => {
+          setUrduVisible(false);
+          setUrduRemoved(true);
+          setEnglishShown(5);
+          setShowActions(true);
+        }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(140,122,104,0.5)",
+          opacity: showActions ? 0 : 1,
+          pointerEvents: showActions ? "none" : "auto",
+          transition: "opacity 0.3s ease",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
       <div style={{
         maxWidth: "34rem",
         width: "100%",
@@ -951,30 +1028,30 @@ function FinalScreen({
           }}>
             <p className="fade-up" style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: "clamp(1.18rem, 3.8vw, 1.55rem)",
+              fontSize: "clamp(1.1rem, 3.5vw, 1.4rem)",
               fontWeight: 400,
               color: "#1C1510",
-              margin: 0, lineHeight: 1.85,
+              margin: 0, lineHeight: 1.5,
               textAlign: "center",
               width: "100%",
             }}>
               happy birthday, kid.
             </p>
 
-            {englishShown >= 2 && <div style={{ height: "0.75rem" }} />}
+            {englishShown >= 2 && <div style={{ height: "0.5rem" }} />}
 
             {englishShown >= 3 && (
               <p className="fade-up" style={{
                 fontFamily: "'Playfair Display', 'Noto Serif Devanagari', 'Noto Nastaliq Urdu', serif",
-                fontSize: "clamp(1.12rem, 3.5vw, 1.45rem)",
+                fontSize: "clamp(1.05rem, 3.2vw, 1.35rem)",
                 fontWeight: 400,
                 color: "#1C1510",
-                margin: 0, lineHeight: 1.85,
+                margin: 0, lineHeight: 1.5,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "0.45rem",
-                minHeight: "1.85em",
+                minHeight: "1.5em",
                 textAlign: "center",
                 width: "100%",
               }}>
@@ -997,16 +1074,16 @@ function FinalScreen({
               </p>
             )}
 
-            {englishShown >= 4 && <div style={{ height: "0.75rem" }} />}
+            {englishShown >= 4 && <div style={{ height: "0.5rem" }} />}
 
             {englishShown >= 5 && (
               <p className="fade-up" style={{
                 fontFamily: "'Playfair Display', serif",
-                fontSize: "clamp(0.92rem, 2.8vw, 1.08rem)",
+                fontSize: "clamp(0.85rem, 2.5vw, 0.98rem)",
                 fontStyle: "italic",
                 fontWeight: 400,
                 color: "#8C7A68",
-                margin: 0, lineHeight: 1.85,
+                margin: 0, lineHeight: 1.5,
                 textAlign: "center",
                 width: "100%",
               }}>
@@ -1017,17 +1094,17 @@ function FinalScreen({
             {/* End actions: View Case File & Relive the Story */}
             {showActions && (
               <div className="fade-up" style={{
-                marginTop: "clamp(2rem, 5vh, 3.2rem)",
+                marginTop: "clamp(1.2rem, 3vh, 2rem)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "1.2rem",
+                gap: "0.8rem",
               }}>
                 <button
                   onClick={() => setShowCaseSummary(true)}
                   className="cta-link"
                   style={{
-                    fontSize: "clamp(0.85rem, 2.5vw, 0.95rem)",
+                    fontSize: "clamp(0.82rem, 2.4vw, 0.9rem)",
                     color: "#C9974A",
                   }}
                 >
@@ -1044,7 +1121,7 @@ function FinalScreen({
                     fontSize: "clamp(0.75rem, 2vw, 0.85rem)",
                     fontStyle: "italic",
                     cursor: "pointer",
-                    padding: "0.4rem 0.8rem",
+                    padding: "0.3rem 0.6rem",
                   }}
                 >
                   ↺ relive the story
@@ -1166,6 +1243,7 @@ export default function HandcraftedChapter04({
     if (typeof window !== "undefined" && localStorage.getItem("p23_ch4_done") === "true") return "final";
     return "opening";
   });
+  useThemeColor(stage === "sentence-reveal" || stage === "final" ? "#F5EFE6" : "#0E0B09");
   const [visible, setVisible] = useState(true);
   const [chosen, setChosen] = useState<string | null>(() => {
     if (typeof window !== "undefined") {

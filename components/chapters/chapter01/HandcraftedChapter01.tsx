@@ -6,6 +6,7 @@ import confetti from "canvas-confetti";
 import { LuxuryEnvelope } from "@/components/handcrafted/LuxuryEnvelope";
 import { UnfoldingLetter } from "@/components/handcrafted/UnfoldingLetter";
 import { Q1_OPTIONS } from "@/lib/case-data";
+import { useThemeColor } from "@/lib/use-theme-color";
 
 /* ─────── Types ─────── */
 interface WheelReward { id?: string; label?: string; description?: string; physicalGiftName?: string; [key: string]: unknown; }
@@ -71,11 +72,12 @@ function Screen({ bg = "#0E0B09", visible, scroll = false, children }: {
       inset: 0,
       height: "100dvh",
       width: "100vw",
+      minHeight: "-webkit-fill-available",
       background: bg,
       display: "flex", flexDirection: "column",
       alignItems: "center",
-      justifyContent: "flex-start",
-      padding: "clamp(2rem,6vh,4rem) clamp(1.2rem,6vw,2.5rem)",
+      justifyContent: "center",
+      padding: "clamp(1.2rem,3.5vh,2.5rem) clamp(1.2rem,5vw,2.5rem)",
       overflowY: scroll ? "auto" : "hidden",
       overflowX: "hidden",
       overscrollBehavior: "none",
@@ -87,11 +89,10 @@ function Screen({ bg = "#0E0B09", visible, scroll = false, children }: {
       pointerEvents: visible ? "auto" : "none",
       boxSizing: "border-box",
     } as React.CSSProperties}>
-      {/* vertical centering shim — pushes content to middle when content is shorter than viewport */}
       <div style={{
         display: "flex", flexDirection: "column", alignItems: "center",
         justifyContent: "center",
-        minHeight: "100%", width: "100%",
+        width: "100%", maxWidth: "34rem",
       }}>
         {children}
       </div>
@@ -156,6 +157,7 @@ function GiftReveal({ visible, moodId, onDone }: {
   moodId: string;
   onDone: () => void;
 }) {
+  useThemeColor("#F5EFE6");
   const lines = getRevealLines(moodId);
   const [shown, setShown] = useState(0);
   const [showCta, setShowCta] = useState(false);
@@ -182,10 +184,11 @@ function GiftReveal({ visible, moodId, onDone }: {
       inset: 0,
       height: "100dvh",
       width: "100vw",
+      minHeight: "-webkit-fill-available",
       background: "#F5EFE6",
       display: "flex", flexDirection: "column",
       alignItems: "flex-start", justifyContent: "center",
-      padding: "clamp(2.5rem,8vh,5rem) clamp(1.5rem,6vw,3rem)",
+      padding: "clamp(1.5rem,4vh,3rem) clamp(1.2rem,5vw,2.5rem)",
       overflow: "hidden",
       overscrollBehavior: "none",
       touchAction: "none",
@@ -193,17 +196,36 @@ function GiftReveal({ visible, moodId, onDone }: {
       transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
+      {/* Pinned skip button: stays at top right of viewport, never scrolls */}
+      <button
+        onClick={() => { setShown(lines.length); setShowCta(true); }}
+        className="cta-link"
+        style={{
+          position: "absolute",
+          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
+          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
+          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
+          color: "rgba(140,122,104,0.5)",
+          opacity: showCta ? 0 : 1,
+          pointerEvents: showCta ? "none" : "auto",
+          transition: "opacity 0.3s ease",
+          zIndex: 10,
+        }}
+      >
+        skip →
+      </button>
+
       <div style={{ maxWidth: "34rem", width: "100%" }}>
         {lines.slice(0, shown).map((line, i) => {
-          if ("gap" in line) return <div key={i} style={{ height: "0.8rem" }} />;
+          if ("gap" in line) return <div key={i} style={{ height: "0.5rem" }} />;
           return (
             <p key={i} className="fade-up" style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: line.size ?? "clamp(0.94rem, 3.2vw, 1.1rem)",
+              fontSize: line.size ?? "clamp(0.82rem, 2.6vw, 0.96rem)",
               fontStyle: line.italic ? "italic" : "normal",
               fontWeight: 400,
               color: line.color ?? "#1C1510",
-              margin: 0, lineHeight: 1.8,
+              margin: 0, lineHeight: 1.55,
             }}>
               {line.text}
             </p>
@@ -211,7 +233,7 @@ function GiftReveal({ visible, moodId, onDone }: {
         })}
 
         <div style={{
-          marginTop: "clamp(1.8rem,4.5vh,2.8rem)",
+          marginTop: "clamp(1rem,2.8vh,1.8rem)",
           opacity: showCta ? 1 : 0,
           transform: showCta ? "translateY(0)" : "translateY(8px)",
           transition: "opacity 0.7s ease, transform 0.7s ease",
@@ -512,49 +534,49 @@ export default function HandcraftedChapter01({
 
       {/* 6 — HORIZON */}
       {stage === "horizon" && (
-        <Screen visible={visible} scroll>
-          <div style={{ width: "100%", maxWidth: "34rem", textAlign: "center", paddingBottom: "1rem" }}>
+        <Screen visible={visible} scroll={false}>
+          <div style={{ width: "100%", maxWidth: "34rem", textAlign: "center" }}>
             <Label>chapter one · done.</Label>
 
             <p className="font-display fade-up" style={{
-              fontSize: "clamp(1.05rem,3.2vw,1.35rem)",
+              fontSize: "clamp(0.92rem,2.8vw,1.15rem)",
               fontStyle: "italic", fontWeight: 400,
-              color: "#7A6858", lineHeight: 1.7, margin: 0,
+              color: "#7A6858", lineHeight: 1.45, margin: 0,
             }}>
               one down.<br />
               three to go.<br />
               come back tomorrow.
             </p>
 
-            <GoldLine width="3rem" margin="clamp(1rem,4vh,2rem) auto" />
+            <GoldLine width="3rem" margin="clamp(0.6rem,1.8vh,1rem) auto" />
 
             <p style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: "clamp(0.68rem,2.2vw,0.76rem)",
-              letterSpacing: "0.28em", textTransform: "uppercase",
-              color: "#3A2C22", marginBottom: "clamp(0.8rem,2.5vh,1.4rem)",
+              fontSize: "clamp(0.65rem,2vw,0.72rem)",
+              letterSpacing: "0.26em", textTransform: "uppercase",
+              color: "#3A2C22", marginBottom: "clamp(0.5rem,1.4vh,0.8rem)",
             }}>
               four chapters · four days
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.8rem,3vh,1.8rem)" }}>
+            <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.6rem,1.8vh,1rem)" }}>
               {CHAPTERS.map(ch => (
                 <div key={ch.n} style={{
-                  display: "flex", alignItems: "center", gap: "0.8rem",
-                  padding: "clamp(0.55rem,1.8vh,0.75rem) 0",
+                  display: "flex", alignItems: "center", gap: "0.7rem",
+                  padding: "clamp(0.35rem,1vh,0.5rem) 0",
                   borderBottom: "1px solid rgba(58,44,34,0.25)",
                   opacity: ch.unlocked ? 1 : 0.32,
                 }}>
                   <span style={{
                     fontFamily: "'Playfair Display', serif",
-                    fontSize: "0.72rem", letterSpacing: "0.12em",
-                    color: ch.unlocked ? "#C9974A" : "#3A2C22", minWidth: "1.6rem",
+                    fontSize: "0.7rem", letterSpacing: "0.12em",
+                    color: ch.unlocked ? "#C9974A" : "#3A2C22", minWidth: "1.5rem",
                   }}>
                     {ch.unlocked ? "✓" : String(ch.n).padStart(2, "0")}
                   </span>
                   <span style={{
                     fontFamily: "'Playfair Display', serif",
-                    fontSize: "clamp(0.92rem,2.6vw,1.08rem)",
+                    fontSize: "clamp(0.85rem,2.4vw,0.98rem)",
                     fontStyle: ch.unlocked ? "italic" : "normal",
                     color: ch.unlocked ? "#F5EFE6" : "#4A3830",
                     flex: 1, textAlign: "left",
@@ -563,7 +585,7 @@ export default function HandcraftedChapter01({
                   </span>
                   <span style={{
                     fontFamily: "'Playfair Display', serif",
-                    fontSize: "clamp(0.65rem,2vw,0.74rem)", letterSpacing: "0.16em",
+                    fontSize: "clamp(0.62rem,1.8vw,0.7rem)", letterSpacing: "0.14em",
                     color: ch.unlocked ? "#C9974A" : "#2E2318",
                     textTransform: "uppercase",
                   }}>
@@ -575,29 +597,30 @@ export default function HandcraftedChapter01({
 
             {/* Countdown to chapter 2 */}
             {!countdownExpired && countdownDisplay && (
-              <div className="fade-up" style={{ marginBottom: "clamp(0.8rem,3vh,1.8rem)" }}>
+              <div className="fade-up" style={{ marginBottom: "clamp(0.6rem,1.8vh,1rem)" }}>
                 <p style={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "clamp(0.68rem,2.2vw,0.75rem)",
-                  letterSpacing: "0.22em", textTransform: "uppercase",
-                  color: "#3A2C22", marginBottom: "0.4rem",
+                  fontSize: "clamp(0.64rem,1.8vw,0.72rem)",
+                  letterSpacing: "0.2em", textTransform: "uppercase",
+                  color: "#3A2C22", marginBottom: "0.3rem",
                 }}>
                   chapter two opens in
                 </p>
                 <p style={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "clamp(1.2rem,3.8vw,1.6rem)",
+                  fontSize: "clamp(1.1rem,3.4vw,1.45rem)",
                   fontStyle: "italic", color: "#C9974A", letterSpacing: "0.06em",
+                  margin: 0,
                 }}>
                   {countdownDisplay}
                 </p>
               </div>
             )}
             {countdownExpired && (
-              <div className="fade-up" style={{ marginBottom: "clamp(1rem,3vh,2rem)" }}>
+              <div className="fade-up" style={{ marginBottom: "clamp(0.6rem,1.8vh,1rem)" }}>
                 <p className="font-hand" style={{
-                  fontSize: "clamp(1.02rem,3vw,1.25rem)",
-                  color: "#C9974A", marginBottom: "0.8rem",
+                  fontSize: "clamp(0.95rem,2.8vw,1.15rem)",
+                  color: "#C9974A", marginBottom: "0.5rem",
                 }}>
                   chapter two is waiting for you ✦
                 </p>
@@ -605,7 +628,7 @@ export default function HandcraftedChapter01({
                   onClick={() => { onRefreshState?.(); window.location.reload(); }}
                   className="cta-link"
                   style={{
-                    fontSize: "clamp(0.85rem, 2.5vw, 0.95rem)",
+                    fontSize: "clamp(0.82rem, 2.4vw, 0.92rem)",
                     color: "#F5EFE6",
                   }}
                 >
@@ -618,34 +641,35 @@ export default function HandcraftedChapter01({
             <button onClick={handleStarTap} style={{
               background: "none", border: "none", cursor: "pointer",
               color: easterEgg ? "#C9974A" : "#2E2318",
-              fontSize: "1.1rem", padding: "0.6rem",
+              fontSize: "1rem", padding: "0.4rem",
               transition: "color 0.5s",
-              marginBottom: easterEgg ? "0.5rem" : "clamp(0.6rem,2.5vh,1.2rem)",
+              marginBottom: easterEgg ? "0.3rem" : "clamp(0.4rem,1.5vh,0.8rem)",
             }}>
               ✦
             </button>
 
             {easterEgg && (
               <p className="font-hand fade-up" style={{
-                fontSize: "clamp(1.05rem,3.2vw,1.25rem)",
-                color: "#C4687A", lineHeight: 1.6,
-                marginBottom: "clamp(0.8rem,2.5vh,1.5rem)",
+                fontSize: "clamp(0.95rem,2.8vw,1.12rem)",
+                color: "#C4687A", lineHeight: 1.45,
+                marginBottom: "clamp(0.5rem,1.8vh,1rem)",
                 whiteSpace: "pre-line",
               }}>
                 {"you found it.\ni built a secret into everything i made for you.\nbecause you notice the small things.\nthat's one of the reasons i love you."}
               </p>
             )}
 
-
-            <button onClick={() => goTo("opening")}
-              className="cta-link"
-              style={{
-                fontSize: "clamp(0.78rem, 2.2vw, 0.86rem)",
-                color: "#7A6858",
-              }}
-            >
-              ↺ read again
-            </button>
+            <div>
+              <button onClick={() => goTo("opening")}
+                className="cta-link"
+                style={{
+                  fontSize: "clamp(0.75rem, 2vw, 0.84rem)",
+                  color: "#7A6858",
+                }}
+              >
+                ↺ read again
+              </button>
+            </div>
           </div>
         </Screen>
       )}

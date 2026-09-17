@@ -260,7 +260,7 @@ export default function HomePage() {
         overflow: "hidden",
         overscrollBehavior: "none",
         touchAction: "none",
-        background: "#0E0B09",
+        background: "transparent",
       }}>
         {(!chapOverride && isLockedBeforeSept20) ? (
           <HandcraftedChapter01
