@@ -1,0 +1,100 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Experience {
+  id                String   @id @default(cuid())
+  slug              String   @unique @default("september23")
+  title             String   @default("Project 23 — The Five Fragments")
+  recipientName     String   @default("Her")
+  recipientNickname String   @default("My Love")
+  preludeStartDate  DateTime @default("2026-09-15T00:00:00.000Z")
+  birthdayDate      DateTime @default("2026-09-23T00:00:00.000Z")
+  simulatedDate     String?  // Creator override ISO string for testing dates
+  status            String   @default("ACTIVE")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Chapter {
+  id             String    @id @default(cuid())
+  chapterNumber  Int       @unique
+  key            String    @unique // e.g. "sweet", "wild", "curious", "anchor", "finale"
+  title          String
+  subtitle       String
+  persona        String
+  unlockDate     DateTime
+  themeColor     String    @default("#C4975D")
+  isCompleted    Boolean   @default(false)
+  completedAt    DateTime?
+  summary        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model RecipientSession {
+  id           String              @id @default(cuid())
+  sessionToken String              @unique
+  ipAddress    String?
+  userAgent    String?
+  lastActiveAt DateTime            @default(now())
+  createdAt    DateTime            @default(now())
+  responses    RecipientResponse[]
+  rewards      RewardRecord[]
+}
+
+model RecipientResponse {
+  id           String           @id @default(cuid())
+  sessionId    String
+  session      RecipientSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  chapterKey   String
+  moduleId     String
+  questionKey  String
+  questionText String
+  chosenAnswer String
+  score        Int?             @default(0)
+  metadataJson String?          // Extra answers/data in JSON
+  createdAt    DateTime         @default(now())
+}
+
+model RewardRecord {
+  id                      String           @id @default(cuid())
+  sessionId               String
+  session                 RecipientSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  chapterKey              String
+  rewardKey               String
+  rewardTitle             String
+  rewardType              String           @default("PHYSICAL") // PHYSICAL or DIGITAL
+  isPhysicalGift          Boolean          @default(true)
+  physicalGiftDescription String?
+  fulfillmentStatus       String           @default("PENDING") // PENDING, ORDERED, READY, DELIVERED
+  creatorNotes            String?
+  wonAt                   DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+}
+
+model Fragment {
+  id             String    @id @default(cuid())
+  fragmentNumber Int       @unique
+  key            String    @unique // "sweet", "wild", "curious", "anchor", "finale"
+  name           String
+  title          String
+  quote          String
+  symbolIcon     String    // Lucide icon name or symbol descriptor
+  accentColor    String
+  isRecovered    Boolean   @default(false)
+  recoveredAt    DateTime?
+  createdAt      DateTime  @default(now())
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
