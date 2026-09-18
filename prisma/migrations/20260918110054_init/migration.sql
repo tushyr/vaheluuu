@@ -1,16 +1,18 @@
 -- CreateTable
 CREATE TABLE "RecipientSession" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "sessionToken" TEXT NOT NULL,
     "ipAddress" TEXT,
     "userAgent" TEXT,
-    "lastActiveAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "lastActiveAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RecipientSession_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "RecipientResponse" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "sessionId" TEXT NOT NULL,
     "chapterKey" TEXT NOT NULL,
     "moduleId" TEXT NOT NULL,
@@ -19,14 +21,15 @@ CREATE TABLE "RecipientResponse" (
     "chosenAnswer" TEXT NOT NULL,
     "score" INTEGER DEFAULT 0,
     "metadataJson" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "RecipientResponse_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "RecipientSession" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RecipientResponse_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "RewardRecord" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "sessionId" TEXT NOT NULL,
     "chapterKey" TEXT NOT NULL,
     "rewardKey" TEXT NOT NULL,
@@ -36,9 +39,10 @@ CREATE TABLE "RewardRecord" (
     "physicalGiftDescription" TEXT,
     "fulfillmentStatus" TEXT NOT NULL DEFAULT 'PENDING',
     "creatorNotes" TEXT,
-    "wonAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "RewardRecord_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "RecipientSession" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "wonAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RewardRecord_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -49,3 +53,9 @@ CREATE UNIQUE INDEX "RecipientResponse_sessionId_chapterKey_questionKey_key" ON 
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RewardRecord_sessionId_chapterKey_key" ON "RewardRecord"("sessionId", "chapterKey");
+
+-- AddForeignKey
+ALTER TABLE "RecipientResponse" ADD CONSTRAINT "RecipientResponse_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "RecipientSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RewardRecord" ADD CONSTRAINT "RewardRecord_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "RecipientSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
