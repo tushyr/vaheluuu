@@ -10,8 +10,8 @@ interface LuxuryEnvelopeProps {
 
 type Phase = "enter" | "ready" | "leaving";
 
-const NAMES = ["zaara", "मन्नू", "واہیلا"];
-const GLITCH_CHARS = "zaaraमन्नूواہیلا!#@$%*^~/\\<>{}[]0123";
+const NAMES = ["vahela", "मन्नू", "واہیلا"];
+const GLITCH_CHARS = "vahelaमन्नूواہیلا!#@$%*^~/\\<>{}[]0123";
 
 function getRandomScramble(target: string) {
   const len = target.length;
@@ -25,9 +25,9 @@ function getRandomScramble(target: string) {
 export function LuxuryEnvelope({ onUnseal, disabled = false }: LuxuryEnvelopeProps) {
   useThemeColor("#0E0B09");
   const [phase, setPhase] = useState<Phase>("enter");
-  const [displayText, setDisplayText] = useState("zaara");
+  const [displayText, setDisplayText] = useState("vahela");
   const [isGlitching, setIsGlitching] = useState(false);
-  const activeNameRef = useRef("zaara");
+  const activeNameRef = useRef("vahela");
   const isLeavingRef = useRef(false);
 
   useEffect(() => {
@@ -152,7 +152,7 @@ export function LuxuryEnvelope({ onUnseal, disabled = false }: LuxuryEnvelopePro
         a letter
       </h1>
 
-      {/* "for her" — glitching between zaara / मन्नू / واہیلا */}
+      {/* "for her" — glitching between vahela / मन्नू / واہیلا */}
       <p
         style={{
           fontFamily: "'Playfair Display', 'Noto Serif Devanagari', 'Noto Nastaliq Urdu', Georgia, serif",
@@ -180,7 +180,7 @@ export function LuxuryEnvelope({ onUnseal, disabled = false }: LuxuryEnvelopePro
             display: "inline-block",
             position: "relative",
             unicodeBidi: "isolate",
-            letterSpacing: displayText === "zaara" ? "0.08em" : "0.02em",
+            letterSpacing: displayText === "vahela" ? "0.08em" : "0.02em",
             transform: isGlitching ? "scale(1.05)" : "scale(1)",
             transition: "transform 0.1s ease",
           }}
