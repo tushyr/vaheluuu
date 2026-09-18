@@ -1,48 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAdminRequest, readDateOverride } from "@/lib/admin-auth";
+import { CHAPTERS } from "@/lib/chapters";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-const CHAPTERS = [
-  { id: "ch1", chapterNumber: 1, title: "Chapter I", subtitle: "The Incident at 02:47", unlockDate: "2026-09-20T00:00:00.000Z", isCompleted: false },
-  { id: "ch2", chapterNumber: 2, title: "Chapter II", subtitle: "The Case of the Sleepy Accomplice", unlockDate: "2026-09-21T00:00:00.000Z", isCompleted: false },
-  { id: "ch3", chapterNumber: 3, title: "Chapter III", subtitle: "The Master Interrupter", unlockDate: "2026-09-22T00:00:00.000Z", isCompleted: false },
-  { id: "ch4", chapterNumber: 4, title: "Chapter IV", subtitle: "The Birthday Grand Finale", unlockDate: "2026-09-23T00:00:00.000Z", isCompleted: false },
-];
-
-const FRAGMENTS = [
-  { id: "fr1", fragmentNumber: 1, key: "fragment_1", title: "Fragment 01: Midnight Echo", isRecovered: true },
-  { id: "fr2", fragmentNumber: 2, key: "fragment_2", title: "Fragment 02: Sleep Whispers", isRecovered: true },
-  { id: "fr3", fragmentNumber: 3, key: "fragment_3", title: "Fragment 03: The Stolen Laughter", isRecovered: true },
-  { id: "fr4", fragmentNumber: 4, key: "fragment_4", title: "Fragment 04: Golden Thread", isRecovered: true },
-];
-
 export async function GET(req: NextRequest) {
   try {
-    const pin = req.headers.get("x-creator-pin");
-    const expectedPin = "2309";
-    if (pin !== expectedPin) {
+    if (!isAdminRequest(req)) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized: Invalid Passkey" },
+        { success: false, error: "Unauthorized." },
         { status: 401 }
       );
     }
 
-    const simDate = req.cookies.get("p23_simulated_date")?.value || null;
+    const simDate = readDateOverride(req);
+    const [sessions, rewards, responses] = await prisma.$transaction([
+      prisma.recipientSession.findMany({
+        select: { id: true, createdAt: true, lastActiveAt: true },
+        orderBy: { lastActiveAt: "desc" },
+      }),
+      prisma.rewardRecord.findMany({ orderBy: { wonAt: "desc" } }),
+      prisma.recipientResponse.findMany({ orderBy: { createdAt: "desc" } }),
+    ]);
+    const recovered = new Set(rewards.map((reward) => reward.chapterKey));
+    const chapters = CHAPTERS.map((chapter) => ({
+      id: `ch${chapter.chapterNumber}`,
+      chapterNumber: chapter.chapterNumber,
+      title: chapter.title,
+      subtitle: chapter.subtitle,
+      unlockDate: `${chapter.unlockDate}T00:00:00.000Z`,
+      isCompleted: recovered.has(chapter.key),
+    }));
+    const fragments = CHAPTERS.map((chapter) => ({
+      id: `fr${chapter.chapterNumber}`,
+      fragmentNumber: chapter.chapterNumber,
+      key: `fragment_${chapter.chapterNumber}`,
+      title: `Fragment ${String(chapter.chapterNumber).padStart(2, "0")}: ${chapter.subtitle}`,
+      isRecovered: recovered.has(chapter.key),
+    }));
 
     return NextResponse.json({
       success: true,
       experience: { slug: "september23", title: "Project 23" },
       simulatedDate: simDate,
-      chapters: CHAPTERS,
-      fragments: FRAGMENTS,
-      sessions: [],
-      rewards: [],
-      responses: [],
+      chapters,
+      fragments,
+      sessions,
+      rewards,
+      responses,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in /api/admin/data:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || String(error) },
+      { success: false, error: "Unexpected server error." },
       { status: 500 }
     );
   }

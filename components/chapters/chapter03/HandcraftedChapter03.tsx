@@ -7,11 +7,9 @@ import { Q3_OPTIONS } from "@/lib/case-data";
 import { useThemeColor } from "@/lib/use-theme-color";
 
 /* ─────── Types ─────── */
-interface WheelReward { id?: string; label?: string; [key: string]: unknown; }
 interface HandcraftedChapter03Props {
-  initialSessionId?: string;
+  initialSessionId: string;
   initialCompleted?: boolean;
-  initialReward?: WheelReward | null;
   onRefreshState?: () => void;
 }
 type Stage = "opening" | "question" | "reflection" | "gift-reveal" | "horizon";
@@ -21,10 +19,6 @@ const BG = "#000000"; // pure black — no warmth, no tint
 
 /* ─────── Sentence fragment (Word 3 of 4) ─────── */
 const ANSWERS = Q3_OPTIONS;
-
-const ANSWER_ECHOES: Record<string, string> = Object.fromEntries(
-  Q3_OPTIONS.map(o => [o.id, o.echo])
-);
 
 /* ─────── Opening — monumental, weighted, sparse ─────── */
 type OpeningEntry =
@@ -252,8 +246,6 @@ function StaggeredQuestion({ visible, onAnswer }: { visible: boolean; onAnswer: 
     setTimeout(() => setShowContinue(true), 300);
     pickTimerRef.current = setTimeout(() => proceed(id), 4000);
   };
-
-  const sizes = ["clamp(2.2rem,7vw,3.8rem)", "clamp(1.7rem,5.5vw,3rem)", "clamp(1.4rem,4.5vw,2.4rem)"];
 
   return (
     <div style={{ position: "fixed", inset: 0, height: "100dvh", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start", padding: "clamp(1.5rem,5vh,3.5rem) clamp(1.5rem,7vw,3.5rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", boxSizing: "border-box", pointerEvents: visible ? "auto" : "none" } as React.CSSProperties}>
@@ -484,18 +476,11 @@ function FierceReflection({ visible, word, onContinue }: { visible: boolean; wor
 
 /* ─────── Chapter 4 unlock ─────── */
 const CHAPTER_4_UNLOCK = new Date("2026-09-23T00:00:00+05:30");
-const CHAPTERS = [
-  { n: 1, title: "The Incident",   date: "sept 20", done: true  },
-  { n: 2, title: "The Sleepy",     date: "sept 21", done: true  },
-  { n: 3, title: "The Interrupter", date: "sept 22", done: true  },
-  { n: 4, title: "The Cover-Up", date: "sept 23", done: false },
-];
 
 /* ─────── Main ─────── */
 export default function HandcraftedChapter03({ initialSessionId, initialCompleted = false, onRefreshState }: HandcraftedChapter03Props) {
   const [stage, setStage] = useState<Stage>(() => {
     if (initialCompleted) return "horizon";
-    if (typeof window !== "undefined" && localStorage.getItem("p23_ch3_done") === "true") return "horizon";
     return "opening";
   });
   useThemeColor(stage === "gift-reveal" ? "#F5EFE6" : BG);
@@ -506,7 +491,7 @@ export default function HandcraftedChapter03({ initialSessionId, initialComplete
   const [starTaps, setStarTaps] = useState(0);
   const [starPulse, setStarPulse] = useState(false);
   const starTapsRef = useRef(0);
-  const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
+  const sessionId = useRef(initialSessionId);
   const { display: countdownDisplay, expired: countdownExpired } = useCountdown(CHAPTER_4_UNLOCK);
 
   const goTo = useCallback((next: Stage) => {
@@ -569,15 +554,16 @@ export default function HandcraftedChapter03({ initialSessionId, initialComplete
       await fetch("/api/chapter/response", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "interrupter", moduleId: "question_01", questionKey: "fragment_03", questionText: "who gets to finish the sentence?", chosenAnswer: id }) });
     } catch (e) { console.error(e); }
     try {
-      await fetch("/api/chapter/spin", {
+      const response = await fetch("/api/chapter/spin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "fierce" }),
       });
+      if (!response.ok) throw new Error(`Unable to save chapter completion (${response.status}).`);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("p23_ch3_done", "true");
+      }
     } catch (e) { console.error(e); }
-    if (typeof window !== "undefined") {
-      localStorage.setItem("p23_ch3_done", "true");
-    }
     onRefreshState?.();
     goTo("reflection");
   }, [chosen, goTo, onRefreshState]);

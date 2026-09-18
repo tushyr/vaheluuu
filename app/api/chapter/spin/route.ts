@@ -1,30 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const CHAPTER_GIFTS: Record<string, { id: string; label: string; isPhysical: boolean; physicalGiftName: string }> = {
-  sweet:   { id: "lindor",    label: "Lindor",           isPhysical: true, physicalGiftName: "Lindor chocolate box" },
-  wild:    { id: "powerbank", label: "Power Bank",        isPhysical: true, physicalGiftName: "Power bank" },
-  fierce:  { id: "youtube",   label: "YouTube Premium",   isPhysical: false, physicalGiftName: "YouTube Premium 1yr" },
-  forever: { id: "mystery",   label: "Mystery Gift",      isPhysical: true, physicalGiftName: "In-person mystery gift" },
-};
+import { asObject, ApiError, safeErrorResponse, validSessionToken } from "@/lib/api-validation";
+import { assertChapterAccess } from "@/lib/chapter-access";
+import { CHAPTER_GIFTS, normalizeChapterKey } from "@/lib/chapters";
+import { prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { chapterKey = "sweet" } = body;
-    const gift = CHAPTER_GIFTS[chapterKey] ?? CHAPTER_GIFTS.sweet;
+    const body = asObject(await req.json());
+    const sessionToken = validSessionToken(body.sessionId);
+    const chapterKey = normalizeChapterKey(body.chapterKey);
+    if (!chapterKey) throw new ApiError("Invalid chapterKey.", 400);
+
+    const session = await prisma.recipientSession.upsert({
+      where: { sessionToken },
+      update: { lastActiveAt: new Date() },
+      create: { sessionToken },
+    });
+    await assertChapterAccess(req, session.id, chapterKey);
+
+    const recordedAnswer = await prisma.recipientResponse.findFirst({
+      where: { sessionId: session.id, chapterKey },
+      select: { id: true },
+    });
+    if (!recordedAnswer) throw new ApiError("Answer the chapter question before completing it.", 409);
+
+    const gift = CHAPTER_GIFTS[chapterKey];
+    const rewardRecord = await prisma.rewardRecord.upsert({
+      where: { sessionId_chapterKey: { sessionId: session.id, chapterKey } },
+      update: {},
+      create: {
+        sessionId: session.id,
+        chapterKey,
+        rewardKey: gift.id,
+        rewardTitle: gift.label,
+        rewardType: gift.isPhysical ? "PHYSICAL" : "DIGITAL",
+        isPhysicalGift: gift.isPhysical,
+        physicalGiftDescription: gift.physicalGiftName,
+      },
+    });
 
     return NextResponse.json({
       success: true,
       reward: gift,
-      recordId: "gift_" + Date.now(),
+      recordId: rewardRecord.id,
     });
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("Error in /api/chapter/spin:", msg);
+    const result = safeErrorResponse(error);
     return NextResponse.json(
-      { success: false, error: msg },
-      { status: 500 }
+      { success: false, error: result.message },
+      { status: result.status },
     );
   }
 }
-

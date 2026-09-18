@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAdminRequest, setDateOverrideCookie } from "@/lib/admin-auth";
+import { asObject } from "@/lib/api-validation";
 
 export async function POST(req: NextRequest) {
   try {
-    const pin = req.headers.get("x-creator-pin");
-    if (pin !== "2309") {
+    if (!isAdminRequest(req)) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized: Invalid Passkey" },
+        { success: false, error: "Unauthorized." },
         { status: 401 }
       );
     }
 
-    const { dateString } = await req.json(); // e.g. "2026-09-15T12:00:00.000Z" or null to reset
+    const body = asObject(await req.json());
+    const dateString = body.dateString;
+    if (dateString !== null && (typeof dateString !== "string" || Number.isNaN(Date.parse(dateString)))) {
+      return NextResponse.json({ success: false, error: "Invalid dateString." }, { status: 400 });
+    }
 
     const res = NextResponse.json({
       success: true,
@@ -20,19 +25,14 @@ export async function POST(req: NextRequest) {
         : "Date simulator reset to real current time.",
     });
 
-    if (dateString) {
-      res.cookies.set("p23_simulated_date", dateString, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-    } else {
-      res.cookies.delete("p23_simulated_date");
-    }
+    setDateOverrideCookie(res, dateString);
 
     return res;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in /api/admin/override-date:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || String(error) },
+      { success: false, error: "Unexpected server error." },
       { status: 500 }
     );
   }
 }
-

@@ -8,11 +8,9 @@ import { Q4_OPTIONS, getCaseOutcome } from "@/lib/case-data";
 import { useThemeColor } from "@/lib/use-theme-color";
 
 /* ─────── Types ─────── */
-interface WheelReward { id?: string; label?: string; [key: string]: unknown; }
 interface HandcraftedChapter04Props {
-  initialSessionId?: string;
+  initialSessionId: string;
   initialCompleted?: boolean;
-  initialReward?: WheelReward | null;
   onRefreshState?: () => void;
 }
 type Stage = "opening" | "question" | "sentence-reveal" | "love-reveal" | "final";
@@ -957,8 +955,9 @@ function FinalScreen({
   }, [showCaseSummary]);
 
   // Continuous glitching every 2s once the name line is visible
+  const shouldGlitchName = englishShown >= 3;
   useEffect(() => {
-    if (englishShown < 3) return;
+    if (!shouldGlitchName) return;
 
     let timeoutId: NodeJS.Timeout;
     let glitchIntervalId: NodeJS.Timeout;
@@ -996,7 +995,7 @@ function FinalScreen({
       clearInterval(glitchIntervalId);
       clearTimeout(stepTimeoutId);
     };
-  }, [englishShown >= 3]);
+  }, [shouldGlitchName]);
 
   const renderLines = (lines: FinalEntry[], shown: number) =>
     lines.slice(0, shown).map((line, i) => {
@@ -1351,7 +1350,6 @@ export default function HandcraftedChapter04({
 }: HandcraftedChapter04Props) {
   const [stage, setStage] = useState<Stage>(() => {
     if (initialCompleted) return "final";
-    if (typeof window !== "undefined" && localStorage.getItem("p23_ch4_done") === "true") return "final";
     return "opening";
   });
   useThemeColor(stage === "sentence-reveal" || stage === "final" ? "#F5EFE6" : "#0E0B09");
@@ -1368,7 +1366,7 @@ export default function HandcraftedChapter04({
     q2: "B1",
     q3: "C3",
   });
-  const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
+  const sessionId = useRef(initialSessionId);
   const answerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -1394,15 +1392,16 @@ export default function HandcraftedChapter04({
   const proceedFromAnswer = useCallback(async () => {
     if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
     try {
-      await fetch("/api/chapter/spin", {
+      const response = await fetch("/api/chapter/spin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "forever", preferredRewardIndex: 0 }),
       });
+      if (!response.ok) throw new Error(`Unable to save chapter completion (${response.status}).`);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("p23_ch4_done", "true");
+      }
     } catch (e) { console.error(e); }
-    if (typeof window !== "undefined") {
-      localStorage.setItem("p23_ch4_done", "true");
-    }
     onRefreshState?.();
     goTo("sentence-reveal");
   }, [goTo, onRefreshState]);
