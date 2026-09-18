@@ -217,7 +217,18 @@ function GiftReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
       total += GIFT_DELAYS[i] ?? 800;
       timers.push(setTimeout(() => setShown(i + 1), total));
     });
-    timers.push(setTimeout(() => { confetti({ particleCount: 45, spread: 50, origin: { y: 0.65 }, colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#C4687A"], scalar: 0.8 }); haptic([40, 60, 120]); }, total + 700));
+    timers.push(setTimeout(() => {
+      confetti({
+        particleCount: 45,
+        spread: 50,
+        origin: { y: 0.65 },
+        colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#C4687A"],
+        scalar: 0.8,
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
+      haptic([40, 60, 120]);
+    }, total + 700));
     timers.push(setTimeout(() => setShowCta(true), total + 1400));
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -387,6 +398,10 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
   const [visible, setVisible] = useState(true);
   const [chosen, setChosen] = useState<string | null>(null);
   const [hoveredAnswer, setHoveredAnswer] = useState<string | null>(null);
+  const [easterEgg, setEasterEgg] = useState(false);
+  const [starTaps, setStarTaps] = useState(0);
+  const [starPulse, setStarPulse] = useState(false);
+  const starTapsRef = useRef(0);
   const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
   const answerTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { display: countdownDisplay, expired: countdownExpired } = useCountdown(CHAPTER_3_UNLOCK);
@@ -398,8 +413,37 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
 
   const handleReadAgain = useCallback(() => {
     setChosen(null);
+    setEasterEgg(false);
+    setStarTaps(0);
+    starTapsRef.current = 0;
     goTo("opening");
   }, [goTo]);
+
+  const handleStarTap = () => {
+    if (easterEgg) return;
+    const next = starTapsRef.current + 1;
+    starTapsRef.current = next;
+    setStarTaps(next);
+    setStarPulse(true);
+    setTimeout(() => setStarPulse(false), 220);
+
+    if (next >= 5) {
+      haptic([30, 40, 50, 60, 100]);
+      setEasterEgg(true);
+      confetti({
+        particleCount: 40,
+        spread: 60,
+        origin: { y: 0.82 },
+        colors: ["#4ECDC4", "#C9974A", "#E8F8F7"],
+        scalar: 0.85,
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
+      starTapsRef.current = 0;
+    } else {
+      haptic(25);
+    }
+  };
 
   const isCh3Done = typeof window !== "undefined" && localStorage.getItem("p23_ch3_done") === "true";
   const isCh4Done = typeof window !== "undefined" && localStorage.getItem("p23_ch4_done") === "true";
@@ -545,16 +589,58 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
               </div>
             )}
 
-            <button onClick={handleReadAgain}
-              className="cta-link"
+            {/* Easter egg ✦ */}
+            <button
+              onClick={handleStarTap}
+              aria-label="secret star"
               style={{
-                fontSize: "clamp(0.75rem, 2vw, 0.82rem)",
-                color: "rgba(78,205,196,0.6)",
-                marginTop: "clamp(0.3rem, 1.5vh, 0.8rem)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: easterEgg
+                  ? ELECTRIC
+                  : starTaps > 0
+                  ? `rgba(78,205,196,${0.2 + starTaps * 0.16})`
+                  : "rgba(78,205,196,0.15)",
+                fontSize: "1.15rem",
+                minWidth: "44px",
+                minHeight: "44px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto",
+                transform: starPulse ? "scale(1.4)" : "scale(1)",
+                transition: "transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.3s ease",
+                marginBottom: easterEgg ? "0.3rem" : "clamp(0.4rem,1.5vh,0.8rem)",
+                WebkitTapHighlightColor: "transparent",
               }}
             >
-              ↺ read again
+              ✦
             </button>
+
+            {easterEgg && (
+              <p className="font-hand fade-up" style={{
+                fontSize: "clamp(0.95rem,2.8vw,1.12rem)",
+                color: ELECTRIC, lineHeight: 1.45,
+                marginBottom: "clamp(0.5rem,1.8vh,1rem)",
+                whiteSpace: "pre-line",
+              }}>
+                {"secret no. 2:\neven when you fall asleep mid-sentence,\nyou're still the only person\ni want to stay awake for."}
+              </p>
+            )}
+
+            <div>
+              <button onClick={handleReadAgain}
+                className="cta-link"
+                style={{
+                  fontSize: "clamp(0.75rem, 2vw, 0.82rem)",
+                  color: "rgba(78,205,196,0.6)",
+                  marginTop: "clamp(0.3rem, 1.5vh, 0.8rem)",
+                }}
+              >
+                ↺ read again
+              </button>
+            </div>
           </div>
         </div>
       )}

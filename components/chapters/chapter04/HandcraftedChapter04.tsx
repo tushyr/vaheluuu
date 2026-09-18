@@ -580,7 +580,15 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
     // "yeah okay i made this up but still" — appears, then fades, then love you
     s(base + 7 * 320 + 450, () => {
       setShowJoke(true);
-      confetti({ particleCount: 95, spread: 72, origin: { y: 0.6 }, colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#C4687A", "#DDD5C8"], scalar: 0.9 });
+      confetti({
+        particleCount: 95,
+        spread: 72,
+        origin: { y: 0.6 },
+        colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#C4687A", "#DDD5C8"],
+        scalar: 0.9,
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
       haptic([30, 40, 100, 40, 120]);
     });
     // Joke fades out after comfortable reading time
@@ -848,11 +856,41 @@ function FinalScreen({
   const [isGlitching, setIsGlitching] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [showCaseSummary, setShowCaseSummary] = useState(false);
+  const [easterEgg, setEasterEgg] = useState(false);
+  const [starTaps, setStarTaps] = useState(0);
+  const [starPulse, setStarPulse] = useState(false);
+  const starTapsRef = useRef(0);
   const activeNameRef = useRef("zaara");
 
   const caseOutcome = useMemo(() => {
     return getCaseOutcome(evidenceValues.q1, evidenceValues.q2, evidenceValues.q3, q4Val);
   }, [evidenceValues, q4Val]);
+
+  const handleStarTap = () => {
+    if (easterEgg) return;
+    const next = starTapsRef.current + 1;
+    starTapsRef.current = next;
+    setStarTaps(next);
+    setStarPulse(true);
+    setTimeout(() => setStarPulse(false), 220);
+
+    if (next >= 5) {
+      haptic([30, 40, 50, 60, 100]);
+      setEasterEgg(true);
+      confetti({
+        particleCount: 55,
+        spread: 65,
+        origin: { y: 0.82 },
+        colors: ["#C9974A", "#E3BE7E", "#C4687A", "#DDD5C8"],
+        scalar: 0.85,
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
+      starTapsRef.current = 0;
+    } else {
+      haptic(25);
+    }
+  };
 
   useEffect(() => {
     const t: ReturnType<typeof setTimeout>[] = [];
@@ -868,7 +906,7 @@ function FinalScreen({
     // Pause, then fade out entire Urdu block (giving ample time to read)
     const urduDone = total + 4500;
     s(urduDone, () => setUrduVisible(false));
-    s(urduDone + 900, () => setUrduRemoved(true));
+    s(urduDone + 850, () => setUrduRemoved(true));
 
     // Then reveal English lines staggered:
     // 1: happy birthday, kid. | 2: gap | 3: i love you my [name] | 4: gap | 5: see you in october.
@@ -881,7 +919,15 @@ function FinalScreen({
 
     // Confetti on "i love you my [name]"
     s(urduDone + 900 + 700 + 200 + 900 + 200, () => {
-      confetti({ particleCount: 65, spread: 60, origin: { y: 0.5 }, colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#C4687A"], scalar: 0.85 });
+      confetti({
+        particleCount: 65,
+        spread: 60,
+        origin: { y: 0.5 },
+        colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#C4687A"],
+        scalar: 0.85,
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
       haptic([20, 30, 80, 30, 100, 30, 150]);
     });
 
@@ -1131,6 +1177,47 @@ function FinalScreen({
                   view your case file ✦
                 </button>
 
+                {/* Easter egg ✦ */}
+                <button
+                  onClick={handleStarTap}
+                  aria-label="secret star"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: easterEgg
+                      ? "#C9974A"
+                      : starTaps > 0
+                      ? `rgba(201,151,74,${0.25 + starTaps * 0.16})`
+                      : "rgba(140,122,104,0.35)",
+                    fontSize: "1.15rem",
+                    minWidth: "44px",
+                    minHeight: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto",
+                    transform: starPulse ? "scale(1.4)" : "scale(1)",
+                    transition: "transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.3s ease",
+                    marginBottom: easterEgg ? "0.3rem" : "0",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  ✦
+                </button>
+
+                {easterEgg && (
+                  <p className="font-hand fade-up" style={{
+                    fontSize: "clamp(0.95rem,2.8vw,1.12rem)",
+                    color: "#C4687A", lineHeight: 1.45,
+                    margin: "0 0 0.5rem 0",
+                    whiteSpace: "pre-line",
+                    textAlign: "center",
+                  }}>
+                    {"you found every single secret.\nhappy 23rd birthday, my zaara.\nevery day with you is my favorite case."}
+                  </p>
+                )}
+
                 <button
                   onClick={onReplay}
                   style={{
@@ -1141,7 +1228,11 @@ function FinalScreen({
                     fontSize: "clamp(0.75rem, 2vw, 0.85rem)",
                     fontStyle: "italic",
                     cursor: "pointer",
-                    padding: "0.3rem 0.6rem",
+                    padding: "0.5rem 1rem",
+                    minHeight: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   ↺ relive the story

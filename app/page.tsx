@@ -58,6 +58,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 export default function HomePage() {
   const [state, setState] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingFadeOut, setLoadingFadeOut] = useState(false);
   const [token, setToken] = useState("");
   const [chapOverride, setChapOverride] = useState<string | null>(null);
 
@@ -139,14 +140,14 @@ export default function HomePage() {
       console.warn("Failed to load backend state, using fallback:", e);
       setState(getFallbackState());
     } finally {
-      // Ensure the pew pew gif has enough time to show (~1.6s)
+      // Ensure the pew pew gif has enough time to show (~1.6s) then crossfade smoothly
       const elapsed = Date.now() - startTime;
       const minDuration = 1600;
-      if (elapsed < minDuration) {
-        setTimeout(() => setLoading(false), minDuration - elapsed);
-      } else {
-        setLoading(false);
-      }
+      const remaining = Math.max(0, minDuration - elapsed);
+      setTimeout(() => {
+        setLoadingFadeOut(true);
+        setTimeout(() => setLoading(false), 550);
+      }, remaining);
     }
   };
 
@@ -170,85 +171,34 @@ export default function HomePage() {
 
     // Safety timeout
     const timer = setTimeout(() => {
-      setLoading(false);
       setState((prev: any) => prev || getFallbackState());
+      setLoadingFadeOut(true);
+      setTimeout(() => setLoading(false), 550);
     }, 2400);
 
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading || !state) {
-    return (
-      <div style={{
-        position: "fixed",
-        inset: 0,
-        height: "100dvh",
-        width: "100vw",
-        overflow: "hidden",
-        overscrollBehavior: "none",
-        touchAction: "none",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#0E0B09",
-        padding: "1.5rem",
-        boxSizing: "border-box",
-      }}>
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-        }}>
-          {/* Boa Hancock pew pew gif */}
-          <img
-            src="/assets/loading-pew-pew.gif"
-            alt="loading pew pew"
-            style={{
-              width: "clamp(200px, 48vw, 290px)",
-              height: "auto",
-              borderRadius: "16px",
-              marginBottom: "1.2rem",
-              objectFit: "contain",
-              filter: "drop-shadow(0 6px 24px rgba(201,151,74,0.15))",
-            }}
-          />
-          <p style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(0.75rem, 2vw, 0.92rem)",
-            letterSpacing: "0.15em",
-            fontStyle: "italic",
-            color: "#C9974A",
-            margin: 0,
-            animation: "gentlePulse 2s ease-in-out infinite",
-          }}>
-            loading pew pew.....
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const activeState = state || getFallbackState();
 
   const isCh1Done = Boolean(
-    state?.rewards?.some((r: any) => r.chapterKey === "sweet") ||
+    activeState?.rewards?.some((r: any) => r.chapterKey === "sweet") ||
     (typeof window !== "undefined" && localStorage.getItem("p23_ch1_done") === "true")
   );
   const isCh2Done = Boolean(
-    state?.rewards?.some((r: any) => r.chapterKey === "wild") ||
+    activeState?.rewards?.some((r: any) => r.chapterKey === "wild") ||
     (typeof window !== "undefined" && localStorage.getItem("p23_ch2_done") === "true")
   );
   const isCh3Done = Boolean(
-    state?.rewards?.some((r: any) => r.chapterKey === "fierce") ||
+    activeState?.rewards?.some((r: any) => r.chapterKey === "fierce") ||
     (typeof window !== "undefined" && localStorage.getItem("p23_ch3_done") === "true")
   );
   const isCh4Done = Boolean(
-    state?.rewards?.some((r: any) => r.chapterKey === "forever") ||
+    activeState?.rewards?.some((r: any) => r.chapterKey === "forever") ||
     (typeof window !== "undefined" && localStorage.getItem("p23_ch4_done") === "true")
   );
 
-  const isLockedBeforeSept20 = Boolean(!chapOverride && state?.isPrelude);
+  const isLockedBeforeSept20 = Boolean(!chapOverride && activeState?.isPrelude);
 
   return (
     <ErrorBoundary>
@@ -273,23 +223,23 @@ export default function HomePage() {
           <HandcraftedChapter01
             initialSessionId={token}
             initialCompleted={isCh1Done}
-            initialReward={state?.sweetReward}
+            initialReward={activeState?.sweetReward}
             isLocked={false}
             onRefreshState={() => loadState(token)}
           />
-        ) : (chapOverride === "4" || (state?.activeChapterKey === "forever" && isCh3Done)) ? (
+        ) : (chapOverride === "4" || (activeState?.activeChapterKey === "forever" && isCh3Done)) ? (
           <HandcraftedChapter04
             initialSessionId={token}
             initialCompleted={isCh4Done}
             onRefreshState={() => loadState(token)}
           />
-        ) : (chapOverride === "3" || ((state?.activeChapterKey === "fierce" || state?.activeChapterKey === "forever") && isCh2Done)) ? (
+        ) : (chapOverride === "3" || ((activeState?.activeChapterKey === "fierce" || activeState?.activeChapterKey === "forever") && isCh2Done)) ? (
           <HandcraftedChapter03
             initialSessionId={token}
             initialCompleted={isCh3Done}
             onRefreshState={() => loadState(token)}
           />
-        ) : (chapOverride === "2" || ((state?.activeChapterKey === "wild" || state?.activeChapterKey === "fierce" || state?.activeChapterKey === "forever") && isCh1Done)) ? (
+        ) : (chapOverride === "2" || ((activeState?.activeChapterKey === "wild" || activeState?.activeChapterKey === "fierce" || activeState?.activeChapterKey === "forever") && isCh1Done)) ? (
           <HandcraftedChapter02
             initialSessionId={token}
             initialCompleted={isCh2Done}
@@ -299,12 +249,69 @@ export default function HomePage() {
           <HandcraftedChapter01
             initialSessionId={token}
             initialCompleted={isCh1Done}
-            initialReward={state?.sweetReward}
+            initialReward={activeState?.sweetReward}
             isLocked={false}
             onRefreshState={() => loadState(token)}
           />
         )}
       </main>
+
+      {/* Cinematic loading overlay with smooth crossfade */}
+      {loading && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          height: "100dvh",
+          width: "100vw",
+          overflow: "hidden",
+          overscrollBehavior: "none",
+          touchAction: "none",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#0E0B09",
+          padding: "1.5rem",
+          boxSizing: "border-box",
+          zIndex: 9999,
+          opacity: loadingFadeOut ? 0 : 1,
+          transition: "opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1)",
+          pointerEvents: loadingFadeOut ? "none" : "auto",
+        }}>
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+          }}>
+            {/* Boa Hancock pew pew gif */}
+            <img
+              src="/assets/loading-pew-pew.gif"
+              alt="loading pew pew"
+              style={{
+                width: "clamp(200px, 48vw, 290px)",
+                height: "auto",
+                borderRadius: "16px",
+                marginBottom: "1.2rem",
+                objectFit: "contain",
+                filter: "drop-shadow(0 6px 24px rgba(201,151,74,0.15))",
+              }}
+            />
+            <p style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(0.75rem, 2vw, 0.92rem)",
+              letterSpacing: "0.15em",
+              fontStyle: "italic",
+              color: "#C9974A",
+              margin: 0,
+              animation: "gentlePulse 2s ease-in-out infinite",
+            }}>
+              loading pew pew.....
+            </p>
+          </div>
+        </div>
+      )}
     </ErrorBoundary>
   );
 }

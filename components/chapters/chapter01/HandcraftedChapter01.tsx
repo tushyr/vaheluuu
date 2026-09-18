@@ -170,7 +170,15 @@ function GiftReveal({ visible, moodId, onDone }: {
       timers.push(setTimeout(() => setShown(i + 1), total));
     });
     timers.push(setTimeout(() => {
-      confetti({ particleCount: 55, spread: 55, origin: { y: 0.65 }, colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#DDD5C8", "#C4687A"], scalar: 0.85 });
+      confetti({
+        particleCount: 55,
+        spread: 55,
+        origin: { y: 0.65 },
+        colors: ["#C9974A", "#E3BE7E", "#F5EFE6", "#DDD5C8", "#C4687A"],
+        scalar: 0.85,
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
       haptic([40, 60, 120]);
     }, total + 700));
     timers.push(setTimeout(() => setShowCta(true), total + 1400));
@@ -275,6 +283,8 @@ export default function HandcraftedChapter01({
   const [moodPicked, setMoodPicked] = useState(false);
   const [pickedMoodId, setPickedMoodId] = useState<string>("sweet");
   const [easterEgg, setEasterEgg] = useState(false);
+  const [starTaps, setStarTaps] = useState(0);
+  const [starPulse, setStarPulse] = useState(false);
   const starTapsRef = useRef(0);
   const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
 
@@ -291,6 +301,9 @@ export default function HandcraftedChapter01({
   const handleReadAgain = useCallback(() => {
     setChosen(null);
     setMoodPicked(false);
+    setEasterEgg(false);
+    setStarTaps(0);
+    starTapsRef.current = 0;
     goTo("opening");
   }, [goTo]);
 
@@ -369,11 +382,28 @@ export default function HandcraftedChapter01({
 
   /* Easter egg */
   const handleStarTap = () => {
-    starTapsRef.current += 1;
-    if (starTapsRef.current >= 5) {
-      haptic([20, 20, 20, 20, 80]);
+    if (easterEgg) return;
+    const next = starTapsRef.current + 1;
+    starTapsRef.current = next;
+    setStarTaps(next);
+    setStarPulse(true);
+    setTimeout(() => setStarPulse(false), 220);
+
+    if (next >= 5) {
+      haptic([30, 40, 50, 60, 100]);
       setEasterEgg(true);
+      confetti({
+        particleCount: 40,
+        spread: 60,
+        origin: { y: 0.82 },
+        colors: ["#C9974A", "#E3BE7E", "#C4687A", "#F5EFE6"],
+        scalar: 0.85,
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
       starTapsRef.current = 0;
+    } else {
+      haptic(25);
     }
   };
 
@@ -690,13 +720,31 @@ export default function HandcraftedChapter01({
             )}
 
             {/* Easter egg ✦ */}
-            <button onClick={handleStarTap} style={{
-              background: "none", border: "none", cursor: "pointer",
-              color: easterEgg ? "#C9974A" : "#2E2318",
-              fontSize: "1rem", padding: "0.4rem",
-              transition: "color 0.5s",
-              marginBottom: easterEgg ? "0.3rem" : "clamp(0.4rem,1.5vh,0.8rem)",
-            }}>
+            <button
+              onClick={handleStarTap}
+              aria-label="secret star"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: easterEgg
+                  ? "#C9974A"
+                  : starTaps > 0
+                  ? `rgba(201,151,74,${0.2 + starTaps * 0.16})`
+                  : "#2E2318",
+                fontSize: "1.15rem",
+                minWidth: "44px",
+                minHeight: "44px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto",
+                transform: starPulse ? "scale(1.4)" : "scale(1)",
+                transition: "transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.3s ease",
+                marginBottom: easterEgg ? "0.3rem" : "clamp(0.4rem,1.5vh,0.8rem)",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
               ✦
             </button>
 
