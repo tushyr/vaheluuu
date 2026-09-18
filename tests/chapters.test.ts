@@ -5,6 +5,7 @@ import {
   formatIndiaDate,
   getActiveChapterKey,
   isChapterAvailable,
+  isReplayMode,
   isValidAnswer,
   normalizeChapterKey,
   previousChapterKey,
@@ -16,6 +17,9 @@ test("chapter schedule uses India calendar boundaries", () => {
   assert.equal(getActiveChapterKey("2026-09-19"), "prelude");
   assert.equal(getActiveChapterKey("2026-09-20"), "sweet");
   assert.equal(getActiveChapterKey("2026-09-23"), "forever");
+  assert.equal(isReplayMode("2026-09-23"), false);
+  assert.equal(isReplayMode("2026-09-24"), true);
+  assert.equal(isReplayMode("2027-01-01"), true);
 });
 
 test("legacy response keys normalize to canonical chapter keys", () => {

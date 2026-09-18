@@ -10,6 +10,7 @@ interface HandcraftedChapter02Props {
   initialSessionId: string;
   initialCompleted?: boolean;
   onRefreshState?: () => void;
+  replayMode?: boolean;
 }
 type Stage = "opening" | "question" | "reflection" | "gift-reveal" | "horizon";
 
@@ -322,7 +323,7 @@ function WildReflection({ visible, word, onContinue }: { visible: boolean; word:
 const CHAPTER_3_UNLOCK = new Date("2026-09-22T00:00:00+05:30");
 
 /* ─────── Main ─────── */
-export default function HandcraftedChapter02({ initialSessionId, initialCompleted = false, onRefreshState }: HandcraftedChapter02Props) {
+export default function HandcraftedChapter02({ initialSessionId, initialCompleted = false, onRefreshState, replayMode = false }: HandcraftedChapter02Props) {
   const [stage, setStage] = useState<Stage>(() => {
     if (initialCompleted) return "horizon";
     return "opening";
@@ -385,9 +386,9 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
   const chapterTimeline = useMemo(() => [
     { n: 1, title: "The Incident", date: "sept 20", done: true },
     { n: 2, title: "The Sleepy", date: "sept 21", done: true },
-    { n: 3, title: "The Interrupter", date: "sept 22", done: isCh3Done },
-    { n: 4, title: "The Cover-Up", date: "sept 23", done: isCh4Done },
-  ], [isCh3Done, isCh4Done]);
+    { n: 3, title: "The Interrupter", date: "sept 22", done: replayMode || isCh3Done },
+    { n: 4, title: "The Cover-Up", date: "sept 23", done: replayMode || isCh4Done },
+  ], [isCh3Done, isCh4Done, replayMode]);
 
   const proceedFromAnswer = useCallback(async () => {
     if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
@@ -483,10 +484,14 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
               <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: ELECTRIC, margin: 0 }}>chapter two · the sleepy</p>
             </div>
             <p className="font-display fade-up" style={{ fontSize: "clamp(0.92rem, 2.8vw, 1.15rem)", fontStyle: "italic", fontWeight: 400, color: "rgba(78,205,196,0.6)", lineHeight: 1.6, margin: 0 }}>
-              two down.<br />charge your phone.<br />come back tomorrow.
+              {replayMode ? (
+                <>still sleepy.<br />still chaotic.<br />pick another whenever.</>
+              ) : (
+                <>two down.<br />charge your phone.<br />come back tomorrow.</>
+              )}
             </p>
             <div style={{ margin: "clamp(0.8rem, 2.5vh, 1.4rem) auto" }} />
-            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(78,205,196,0.3)", marginBottom: "clamp(0.5rem, 1.8vh, 0.9rem)" }}>four chapters · four days</p>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(78,205,196,0.3)", marginBottom: "clamp(0.5rem, 1.8vh, 0.9rem)" }}>{replayMode ? "four chapters · forever yours" : "four chapters · four days"}</p>
             <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.6rem, 2.2vh, 1.2rem)" }}>
               {chapterTimeline.map(ch => (
                 <div key={ch.n} style={{ display: "flex", alignItems: "center", gap: "0.8rem", padding: "clamp(0.35rem, 1.2vh, 0.55rem) 0", borderBottom: "1px solid rgba(78,205,196,0.1)", opacity: ch.done ? 1 : 0.22 }}>
@@ -496,13 +501,13 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
                 </div>
               ))}
             </div>
-            {!countdownExpired && countdownDisplay && (
+            {!replayMode && !countdownExpired && countdownDisplay && (
               <div className="fade-up" style={{ marginBottom: "clamp(0.6rem, 2vh, 1.2rem)" }}>
                 <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(78,205,196,0.45)", marginBottom: "0.3rem" }}>chapter three opens in</p>
                 <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.1rem, 3.4vw, 1.45rem)", fontStyle: "italic", color: ELECTRIC, letterSpacing: "0.06em", margin: 0 }}>{countdownDisplay}</p>
               </div>
             )}
-            {countdownExpired && (
+            {!replayMode && countdownExpired && (
               <div className="fade-up" style={{ marginBottom: "clamp(0.8rem, 2vh, 1.4rem)" }}>
                 <p className="font-hand" style={{
                   fontSize: "clamp(0.95rem, 2.8vw, 1.15rem)",

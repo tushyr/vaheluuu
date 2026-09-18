@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { safeErrorResponse, validSessionToken } from "@/lib/api-validation";
 import { readDateOverride } from "@/lib/admin-auth";
 import { effectiveDateForRequest } from "@/lib/chapter-access";
-import { formatIndiaDate, getActiveChapterKey } from "@/lib/chapters";
+import { formatIndiaDate, getActiveChapterKey, isReplayMode } from "@/lib/chapters";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
       effectiveDateFormatted: effectiveDateStr,
       simulatedDate,
       activeChapterKey,
+      replayMode: isReplayMode(effectiveDateStr),
       session: { id: session.id, token: session.sessionToken },
       rewards: session.rewards,
       responses: session.responses,

@@ -14,6 +14,7 @@ interface HandcraftedChapter01Props {
   initialCompleted?: boolean;
   onRefreshState?: () => void;
   isLocked?: boolean;
+  replayMode?: boolean;
 }
 type Stage = "opening" | "letter" | "question" | "gift" | "gift-reveal" | "horizon";
 
@@ -241,6 +242,7 @@ export default function HandcraftedChapter01({
   initialCompleted = false,
   onRefreshState,
   isLocked = false,
+  replayMode = false,
 }: HandcraftedChapter01Props) {
   const [stage, setStage] = useState<Stage>(() => {
     if (initialCompleted) return "horizon";
@@ -283,10 +285,10 @@ export default function HandcraftedChapter01({
 
   const chapterTimeline = useMemo(() => [
     { n: 1, title: "The Incident", date: "sept 20", unlocked: true },
-    { n: 2, title: "The Sleepy", date: "sept 21", unlocked: isCh2Done },
-    { n: 3, title: "The Interrupter", date: "sept 22", unlocked: isCh3Done },
-    { n: 4, title: "The Cover-Up", date: "sept 23", unlocked: isCh4Done },
-  ], [isCh2Done, isCh3Done, isCh4Done]);
+    { n: 2, title: "The Sleepy", date: "sept 21", unlocked: replayMode || isCh2Done },
+    { n: 3, title: "The Interrupter", date: "sept 22", unlocked: replayMode || isCh3Done },
+    { n: 4, title: "The Cover-Up", date: "sept 23", unlocked: replayMode || isCh4Done },
+  ], [isCh2Done, isCh3Done, isCh4Done, replayMode]);
 
   const proceedFromAnswer = useCallback(() => {
     if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
@@ -589,16 +591,18 @@ export default function HandcraftedChapter01({
       {stage === "horizon" && (
         <Screen visible={visible} scroll={false}>
           <div style={{ width: "100%", maxWidth: "34rem", textAlign: "center" }}>
-            <Label>chapter one · done.</Label>
+            <Label>{replayMode ? "chapter one · relived." : "chapter one · done."}</Label>
 
             <p className="font-display fade-up" style={{
               fontSize: "clamp(0.92rem,2.8vw,1.15rem)",
               fontStyle: "italic", fontWeight: 400,
               color: "#7A6858", lineHeight: 1.45, margin: 0,
             }}>
-              one down.<br />
-              three to go.<br />
-              come back tomorrow.
+              {replayMode ? (
+                <>still sweet.<br />still yours.<br />pick another whenever.</>
+              ) : (
+                <>one down.<br />three to go.<br />come back tomorrow.</>
+              )}
             </p>
 
             <GoldLine width="3rem" margin="clamp(0.6rem,1.8vh,1rem) auto" />
@@ -609,7 +613,7 @@ export default function HandcraftedChapter01({
               letterSpacing: "0.26em", textTransform: "uppercase",
               color: "#3A2C22", marginBottom: "clamp(0.5rem,1.4vh,0.8rem)",
             }}>
-              four chapters · four days
+              {replayMode ? "four chapters · forever yours" : "four chapters · four days"}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.6rem,1.8vh,1rem)" }}>
@@ -649,7 +653,7 @@ export default function HandcraftedChapter01({
             </div>
 
             {/* Countdown to chapter 2 */}
-            {!countdownExpired && countdownDisplay && (
+            {!replayMode && !countdownExpired && countdownDisplay && (
               <div className="fade-up" style={{ marginBottom: "clamp(0.6rem,1.8vh,1rem)" }}>
                 <p style={{
                   fontFamily: "'Playfair Display', serif",
@@ -669,7 +673,7 @@ export default function HandcraftedChapter01({
                 </p>
               </div>
             )}
-            {countdownExpired && (
+            {!replayMode && countdownExpired && (
               <div className="fade-up" style={{ marginBottom: "clamp(0.6rem,1.8vh,1rem)" }}>
                 <p className="font-hand" style={{
                   fontSize: "clamp(0.95rem,2.8vw,1.15rem)",

@@ -84,6 +84,30 @@ body {
 .font-serif       { font-family: 'Playfair Display', Georgia, serif; }
 .font-editorial   { font-family: 'Playfair Display', Georgia, serif; }
 
+.replay-card,
+.chapter-library-back {
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.replay-card:active,
+.chapter-library-back:active {
+  transform: scale(0.98);
+}
+
+.replay-card:focus-visible,
+.chapter-library-back:focus-visible {
+  outline: 2px solid var(--gold-lt);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .replay-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(227, 190, 126, 0.75) !important;
+    background: rgba(28, 21, 16, 0.92) !important;
+  }
+}
+
 /* Keep the cinematic scale on larger screens while making every chapter
    comfortably readable on a phone. Chapter copy is authored with inline
    clamp() values, so these scoped floors cover all four chapters centrally. */
