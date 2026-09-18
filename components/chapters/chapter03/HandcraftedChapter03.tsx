@@ -175,25 +175,6 @@ function FierceOpening({ visible, onContinue }: { visible: boolean; onContinue: 
       transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      {/* Pinned skip button: stays at top right of viewport, never scrolls */}
-      <button
-        onClick={() => { setShown(OPENING.length); setShowCta(true); }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(255,255,255,0.45)",
-          opacity: showCta ? 0 : 1,
-          pointerEvents: showCta ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div style={{ maxWidth: "30rem", width: "100%" }}>
         {OPENING.slice(0, shown).map((entry, i) => {
           if ("gap" in entry) return <div key={i} style={{ height: "clamp(0.25rem, 0.8vh, 0.45rem)" }} />;
@@ -340,25 +321,6 @@ function GiftReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
       transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      {/* Pinned skip button: stays at top right of viewport, never scrolls */}
-      <button
-        onClick={() => { setShown(GIFT_LINES.length); setShowCta(true); }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(140,122,104,0.5)",
-          opacity: showCta ? 0 : 1,
-          pointerEvents: showCta ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div style={{ maxWidth: "34rem", width: "100%" }}>
         {GIFT_LINES.slice(0, shown).map((line, i) => {
           if ("gap" in line) return <div key={i} style={{ height: "0.4rem" }} />;
@@ -425,25 +387,6 @@ function FierceReflection({ visible, word, onContinue }: { visible: boolean; wor
       transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      {/* Pinned skip button */}
-      <button
-        onClick={() => { setShown(lines.length); setShowCta(true); }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(255,255,255,0.45)",
-          opacity: showCta ? 0 : 1,
-          pointerEvents: showCta ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div style={{ maxWidth: "28rem", width: "100%" }}>
         {lines.slice(0, shown).map((line, i) => (
           <p key={i} className="fade-up" style={{

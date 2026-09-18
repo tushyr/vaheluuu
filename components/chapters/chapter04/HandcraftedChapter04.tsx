@@ -231,22 +231,6 @@ function BirthdayOpening({ visible, onComplete }: { visible: boolean; onComplete
         boxSizing: "border-box",
       } as React.CSSProperties}
     >
-      {/* Pinned skip button */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onComplete(); }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(122,104,88,0.6)",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div
         style={{
           maxWidth: "30rem", width: "100%",
@@ -363,25 +347,6 @@ function CaseReveal({
       opacity: visible ? 1 : 0, transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      {/* Pinned skip button */}
-      <button
-        onClick={() => { setPhase(14); setShowCta(true); }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(140,122,104,0.5)",
-          opacity: showCta ? 0 : 1,
-          pointerEvents: showCta ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div style={{ maxWidth: "34rem", width: "100%" }}>
 
         {/* 1. Header */}
@@ -640,32 +605,6 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
       opacity: visible ? 1 : 0, transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      {/* Pinned skip button */}
-      <button
-        onClick={() => {
-          setPhase(12);
-          setLetterStates(new Array(7).fill("gold"));
-          setShowJoke(false);
-          setShowLoveWord(true);
-          setShowAlways(true);
-          setShowCta(true);
-        }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(201,151,74,0.5)",
-          opacity: showCta ? 0 : 1,
-          pointerEvents: showCta ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div style={{ maxWidth: "34rem", width: "100%" }}>
 
         {/* Intro — spoken directly to her */}
@@ -1035,30 +974,6 @@ function FinalScreen({
       opacity: visible ? 1 : 0, transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      {/* Pinned skip button: allows skipping Urdu animation */}
-      <button
-        onClick={() => {
-          setUrduVisible(false);
-          setUrduRemoved(true);
-          setEnglishShown(5);
-          setShowActions(true);
-        }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(140,122,104,0.5)",
-          opacity: showActions ? 0 : 1,
-          pointerEvents: showActions ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div style={{
         maxWidth: "34rem",
         width: "100%",

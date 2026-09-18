@@ -102,15 +102,6 @@ export function UnfoldingLetter({ onProceedToQuestion }: UnfoldingLetterProps) {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [tick]);
 
-  const skipAll = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    const all: Record<number, number> = {};
-    LETTER.forEach((seg, si) => { if (seg.k === "text") all[si] = seg.words.length; });
-    setRevealed(all);
-    setCursor(null);
-    setDone(true);
-  };
-
   const proceed = () => {
     setLeaving(true);
     setTimeout(onProceedToQuestion, 600);
@@ -141,30 +132,6 @@ export function UnfoldingLetter({ onProceedToQuestion }: UnfoldingLetterProps) {
         boxSizing: "border-box",
       }}
     >
-      {/* Skip button — fixed to top right, always visible until complete */}
-      {!done && (
-        <button
-          onClick={skipAll}
-          style={{
-            position: "absolute",
-            top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-            right: "clamp(1.2rem, 5vw, 2.5rem)",
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(0.7rem, 2vw, 0.78rem)",
-            fontStyle: "italic",
-            letterSpacing: "0.06em",
-            color: "#8C7A68",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            zIndex: 50,
-            padding: "4px 8px",
-          }}
-        >
-          skip →
-        </button>
-      )}
-
       {/* Main Letter Content — zero scroll, perfectly fitted */}
       <div
         style={{
