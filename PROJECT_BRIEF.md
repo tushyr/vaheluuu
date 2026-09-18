@@ -9,7 +9,7 @@ Birthday: **23 September 2026**.
 
 A 4-day cinematic narrative site delivered via QR code.
 Each day (Sept 20–23) unlocks a new chapter.
-Each chapter has its own visual tone, pacing, and a question that builds a sentence.
+Each chapter has its own visual tone, pacing, and a question that builds the final case summary.
 On the final day, all four words combine — and the gift acrostic is revealed.
 
 ---
@@ -27,11 +27,10 @@ Gift acrostic: L + O + VE + YOU = LOVE YOU
 
 ---
 
-## Sentence System
+## Answer System
 
-Each chapter asks one question. She picks one word.
-Final sentence revealed on Day 4:
-  "you are [ch1 word], [ch2 word], [ch3 word], and [ch4 word]."
+Each chapter asks one question. The selected answer IDs combine into the Day 4 case summary.
+The server persists responses and rewards by recipient session; localStorage mirrors answer IDs for animation continuity.
 
 localStorage keys: p23_word_ch1, p23_word_ch2, p23_word_ch3, p23_word_ch4
 
@@ -79,7 +78,7 @@ components/chapters/chapter04/HandcraftedChapter04.tsx  - The Forever
 components/handcrafted/UnfoldingLetter.tsx              - Ch1 letter animation
 components/handcrafted/LuxuryEnvelope.tsx               - Ch1 envelope animation
 lib/audio/bg-music.ts                                   - music singleton
-app/admin/page.tsx                                      - admin dashboard (passkey: 2309)
+app/admin/page.tsx                                      - authenticated admin dashboard
 app/api/state/route.ts                                  - returns active chapter
 app/api/chapter/response/route.ts                       - saves answers
 app/api/chapter/spin/route.ts                           - marks chapter complete
@@ -93,4 +92,4 @@ Dark bg: #0E0B09   Ivory bg: #FAF7F2
 Gold: #C9974A      Rose: #C4687A
 Sign-off: — ♡
 
-Admin passkey: 2309
+Admin access is configured with the `P23_ADMIN_SECRET` environment variable.

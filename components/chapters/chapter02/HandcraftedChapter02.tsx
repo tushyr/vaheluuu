@@ -6,11 +6,9 @@ import { Q2_OPTIONS } from "@/lib/case-data";
 import { useThemeColor } from "@/lib/use-theme-color";
 
 /* ─────── Types ─────── */
-interface WheelReward { id?: string; label?: string; [key: string]: unknown; }
 interface HandcraftedChapter02Props {
-  initialSessionId?: string;
+  initialSessionId: string;
   initialCompleted?: boolean;
-  initialReward?: WheelReward | null;
   onRefreshState?: () => void;
 }
 type Stage = "opening" | "question" | "reflection" | "gift-reveal" | "horizon";
@@ -379,18 +377,11 @@ function WildReflection({ visible, word, onContinue }: { visible: boolean; word:
 
 /* ─────── Chapter 3 unlock ─────── */
 const CHAPTER_3_UNLOCK = new Date("2026-09-22T00:00:00+05:30");
-const CHAPTERS = [
-  { n: 1, title: "The Incident",   date: "sept 20", done: true  },
-  { n: 2, title: "The Sleepy",     date: "sept 21", done: true  },
-  { n: 3, title: "The Interrupter", date: "sept 22", done: false },
-  { n: 4, title: "The Cover-Up",   date: "sept 23", done: false },
-];
 
 /* ─────── Main ─────── */
 export default function HandcraftedChapter02({ initialSessionId, initialCompleted = false, onRefreshState }: HandcraftedChapter02Props) {
   const [stage, setStage] = useState<Stage>(() => {
     if (initialCompleted) return "horizon";
-    if (typeof window !== "undefined" && localStorage.getItem("p23_ch2_done") === "true") return "horizon";
     return "opening";
   });
   useThemeColor(stage === "gift-reveal" ? "#F5EFE6" : BG);
@@ -402,7 +393,7 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
   const [starTaps, setStarTaps] = useState(0);
   const [starPulse, setStarPulse] = useState(false);
   const starTapsRef = useRef(0);
-  const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
+  const sessionId = useRef(initialSessionId);
   const answerTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { display: countdownDisplay, expired: countdownExpired } = useCountdown(CHAPTER_3_UNLOCK);
 
@@ -458,15 +449,16 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
   const proceedFromAnswer = useCallback(async () => {
     if (answerTimerRef.current) clearTimeout(answerTimerRef.current);
     try {
-      await fetch("/api/chapter/spin", {
+      const response = await fetch("/api/chapter/spin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: sessionId.current, chapterKey: "wild" }),
       });
+      if (!response.ok) throw new Error(`Unable to save chapter completion (${response.status}).`);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("p23_ch2_done", "true");
+      }
     } catch (e) { console.error(e); }
-    if (typeof window !== "undefined") {
-      localStorage.setItem("p23_ch2_done", "true");
-    }
     onRefreshState?.();
     goTo("reflection");
   }, [goTo, onRefreshState]);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Component, ErrorInfo, ReactNode, useEffect, useState } from "react";
+import React, { Component, ErrorInfo, ReactNode, useCallback, useEffect, useState } from "react";
 import HandcraftedChapter01 from "@/components/chapters/chapter01/HandcraftedChapter01";
 import HandcraftedChapter02 from "@/components/chapters/chapter02/HandcraftedChapter02";
 import HandcraftedChapter03 from "@/components/chapters/chapter03/HandcraftedChapter03";
@@ -13,6 +13,54 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
+}
+
+interface RewardState {
+  chapterKey: string;
+}
+
+interface ResponseState {
+  chapterKey: string;
+  chosenAnswer: string;
+}
+
+interface ExperienceState {
+  success: boolean;
+  isPrelude: boolean;
+  effectiveDateFormatted: string;
+  activeChapterKey: string;
+  responses: ResponseState[];
+  rewards: RewardState[];
+  sweetReward: RewardState | null;
+}
+
+function getFallbackState(): ExperienceState {
+  let nowIST = "2026-09-18";
+  try {
+    nowIST = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  } catch {}
+
+  const isPrelude = nowIST < "2026-09-20";
+  let activeChapterKey = "sweet";
+  if (isPrelude) activeChapterKey = "prelude";
+  else if (nowIST >= "2026-09-23") activeChapterKey = "forever";
+  else if (nowIST >= "2026-09-22") activeChapterKey = "fierce";
+  else if (nowIST >= "2026-09-21") activeChapterKey = "wild";
+
+  return {
+    success: true,
+    isPrelude,
+    effectiveDateFormatted: nowIST,
+    activeChapterKey,
+    responses: [],
+    rewards: [],
+    sweetReward: null,
+  };
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -56,7 +104,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 export default function HomePage() {
-  const [state, setState] = useState<any>(null);
+  const [state, setState] = useState<ExperienceState | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingFadeOut, setLoadingFadeOut] = useState(false);
   const [token, setToken] = useState("");
@@ -66,39 +114,13 @@ export default function HomePage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const c = params.get("chap");
-      if (c) setChapOverride(c);
+      if (process.env.NODE_ENV !== "production" && c && ["1", "2", "3", "4"].includes(c)) {
+        setChapOverride(c);
+      }
     }
   }, []);
 
-  const getFallbackState = () => {
-    let nowIST = "2026-09-18";
-    try {
-      nowIST = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Asia/Kolkata",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(new Date());
-    } catch (_) {}
-
-    const isPrelude = nowIST < "2026-09-20";
-    let activeChapterKey = "sweet";
-    if (isPrelude) activeChapterKey = "prelude";
-    else if (nowIST >= "2026-09-23") activeChapterKey = "forever";
-    else if (nowIST >= "2026-09-22") activeChapterKey = "fierce";
-    else if (nowIST >= "2026-09-21") activeChapterKey = "wild";
-
-    return {
-      success: true,
-      isPrelude,
-      effectiveDateFormatted: nowIST,
-      activeChapterKey,
-      recoveredKeys: [],
-      sweetReward: null,
-    };
-  };
-
-  const loadState = async (sessionToken: string) => {
+  const loadState = useCallback(async (sessionToken: string) => {
     const startTime = Date.now();
     try {
       const res = await fetch(`/api/state?session=${encodeURIComponent(sessionToken)}`);
@@ -149,7 +171,7 @@ export default function HomePage() {
         setTimeout(() => setLoading(false), 550);
       }, remaining);
     }
-  };
+  }, []);
 
   useEffect(() => {
     let t = "";
@@ -160,10 +182,10 @@ export default function HomePage() {
     }
 
     if (!t) {
-      t = "s_" + Math.random().toString(36).slice(2, 10);
+      t = `s_${crypto.randomUUID().replaceAll("-", "")}`;
       try {
         localStorage.setItem("p23_recipient_session", t);
-      } catch (e) {}
+      } catch {}
     }
 
     setToken(t);
@@ -171,31 +193,27 @@ export default function HomePage() {
 
     // Safety timeout
     const timer = setTimeout(() => {
-      setState((prev: any) => prev || getFallbackState());
+      setState((prev) => prev || getFallbackState());
       setLoadingFadeOut(true);
       setTimeout(() => setLoading(false), 550);
     }, 2400);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [loadState]);
 
   const activeState = state || getFallbackState();
 
   const isCh1Done = Boolean(
-    activeState?.rewards?.some((r: any) => r.chapterKey === "sweet") ||
-    (typeof window !== "undefined" && localStorage.getItem("p23_ch1_done") === "true")
+    activeState.rewards.some((reward) => reward.chapterKey === "sweet")
   );
   const isCh2Done = Boolean(
-    activeState?.rewards?.some((r: any) => r.chapterKey === "wild") ||
-    (typeof window !== "undefined" && localStorage.getItem("p23_ch2_done") === "true")
+    activeState.rewards.some((reward) => reward.chapterKey === "wild")
   );
   const isCh3Done = Boolean(
-    activeState?.rewards?.some((r: any) => r.chapterKey === "fierce") ||
-    (typeof window !== "undefined" && localStorage.getItem("p23_ch3_done") === "true")
+    activeState.rewards.some((reward) => reward.chapterKey === "fierce")
   );
   const isCh4Done = Boolean(
-    activeState?.rewards?.some((r: any) => r.chapterKey === "forever") ||
-    (typeof window !== "undefined" && localStorage.getItem("p23_ch4_done") === "true")
+    activeState.rewards.some((reward) => reward.chapterKey === "forever")
   );
 
   const isLockedBeforeSept20 = Boolean(!chapOverride && activeState?.isPrelude);
@@ -212,7 +230,7 @@ export default function HomePage() {
         touchAction: "none",
         background: "transparent",
       }}>
-        {(!chapOverride && isLockedBeforeSept20) ? (
+        {token && ((!chapOverride && isLockedBeforeSept20) ? (
           <HandcraftedChapter01
             initialSessionId={token}
             initialCompleted={false}
@@ -223,7 +241,6 @@ export default function HomePage() {
           <HandcraftedChapter01
             initialSessionId={token}
             initialCompleted={isCh1Done}
-            initialReward={activeState?.sweetReward}
             isLocked={false}
             onRefreshState={() => loadState(token)}
           />
@@ -249,11 +266,10 @@ export default function HomePage() {
           <HandcraftedChapter01
             initialSessionId={token}
             initialCompleted={isCh1Done}
-            initialReward={activeState?.sweetReward}
             isLocked={false}
             onRefreshState={() => loadState(token)}
           />
-        )}
+        ))}
       </main>
 
       {/* Cinematic loading overlay with smooth crossfade */}

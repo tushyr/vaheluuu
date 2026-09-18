@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -9,57 +9,113 @@ import {
   MessageSquare,
   Sparkles,
   RefreshCw,
-  Clock,
   CheckCircle,
-  AlertCircle,
   ArrowLeft,
   Sliders,
-  ChevronRight,
-  Package,
 } from "lucide-react";
 
+interface AdminReward {
+  id: string;
+  chapterKey: string;
+  rewardTitle: string;
+  physicalGiftDescription: string | null;
+  fulfillmentStatus: string;
+  creatorNotes: string | null;
+  wonAt: string;
+}
+
+interface AdminResponse {
+  id: string;
+  chapterKey: string;
+  moduleId: string;
+  questionText: string;
+  chosenAnswer: string;
+  createdAt: string;
+}
+
+interface AdminFragment {
+  id: string;
+  key: string;
+  title: string;
+  isRecovered: boolean;
+}
+
+interface AdminChapter {
+  id: string;
+  title: string;
+  subtitle: string;
+  unlockDate: string;
+  isCompleted: boolean;
+}
+
+interface AdminData {
+  simulatedDate: string | null;
+  rewards: AdminReward[];
+  responses: AdminResponse[];
+  fragments: AdminFragment[];
+  chapters: AdminChapter[];
+}
+
 export default function AdminPage() {
-  const [pin, setPin] = useState("");
+  const [secret, setSecret] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [adminData, setAdminData] = useState<any>(null);
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
 
-  const fetchAdminData = async (activePin = pin) => {
+  const fetchAdminData = useCallback(async (showError = true) => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch("/api/admin/data", {
-        headers: { "x-creator-pin": activePin },
-      });
+      const res = await fetch("/api/admin/data");
       const data = await res.json();
       if (res.ok && data.success) {
         setAdminData(data);
         setIsAuthenticated(true);
-        localStorage.setItem("p23_creator_pin", activePin);
       } else {
-        setErrorMsg(data.error || "Incorrect Passkey.");
+        if (showError) setErrorMsg(data.error || "Your admin session has expired.");
         setIsAuthenticated(false);
       }
-    } catch (e: any) {
+    } catch {
       setErrorMsg("Network error fetching admin data.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAdminData(false);
+  }, [fetchAdminData]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ secret }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setErrorMsg(data.error || "Unable to authenticate.");
+        return;
+      }
+      setSecret("");
+      await fetchAdminData();
+    } catch {
+      setErrorMsg("Network error while authenticating.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const savedPin = localStorage.getItem("p23_creator_pin");
-    if (savedPin) {
-      setPin(savedPin);
-      fetchAdminData(savedPin);
-    }
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchAdminData(pin);
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    setAdminData(null);
+    setIsAuthenticated(false);
   };
 
   const handleSimulateDate = async (isoDate: string | null) => {
@@ -68,7 +124,6 @@ export default function AdminPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-creator-pin": pin,
         },
         body: JSON.stringify({ dateString: isoDate }),
       });
@@ -79,7 +134,7 @@ export default function AdminPage() {
             ? `Active date simulated to: ${isoDate.split("T")[0]}`
             : "Reset to actual real-time date."
         );
-        fetchAdminData(pin);
+        fetchAdminData();
         setTimeout(() => setStatusMessage(""), 4000);
       }
     } catch (e) {
@@ -96,7 +151,6 @@ export default function AdminPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-creator-pin": pin,
         },
         body: JSON.stringify({
           recordId,
@@ -104,7 +158,7 @@ export default function AdminPage() {
         }),
       });
       if (res.ok) {
-        fetchAdminData(pin);
+        fetchAdminData();
       }
     } catch (e) {
       console.error(e);
@@ -128,7 +182,7 @@ export default function AdminPage() {
               Creator Dashboard
             </h1>
             <p className="text-xs text-cream-200/70 mt-1">
-              Enter your creator security passkey (Default: 2309)
+              Enter the admin secret configured for this deployment.
             </p>
           </div>
 
@@ -136,9 +190,9 @@ export default function AdminPage() {
             <div>
               <input
                 type="password"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="Passkey"
+                value={secret}
+                onChange={(e) => setSecret(e.target.value)}
+                placeholder="Admin secret"
                 className="w-full text-center px-4 py-3.5 rounded-2xl bg-black/50 border border-white/15 text-cream-50 font-mono-code text-lg tracking-[0.3em] focus:border-amberGold-400 focus:outline-none transition-colors"
                 autoFocus
               />
@@ -152,7 +206,7 @@ export default function AdminPage() {
 
             <button
               type="submit"
-              disabled={loading || !pin}
+              disabled={loading || !secret}
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-caramel-500 via-amberGold-500 to-caramel-600 text-noir-950 font-cinzel font-bold text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg cursor-pointer"
             >
               {loading ? "Authenticating..." : "Access Dashboard"}
@@ -202,11 +256,17 @@ export default function AdminPage() {
             Open Recipient View ↗
           </Link>
           <button
-            onClick={() => fetchAdminData(pin)}
+            onClick={() => fetchAdminData()}
             className="p-2 rounded-xl glass-panel border border-white/10 hover:border-caramel-400/40 text-cream-100 transition-colors"
             title="Refresh Data"
           >
             <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-3 py-2 rounded-xl glass-panel border border-white/10 hover:border-rosewood-400/40 text-xs text-cream-100 transition-colors"
+          >
+            Sign out
           </button>
         </div>
       </div>
@@ -277,7 +337,7 @@ export default function AdminPage() {
           </p>
         ) : (
           <div className="space-y-3">
-            {adminData?.rewards?.map((rew: any) => (
+            {adminData?.rewards?.map((rew) => (
               <div
                 key={rew.id}
                 className="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
@@ -344,7 +404,7 @@ export default function AdminPage() {
           </p>
         ) : (
           <div className="space-y-3">
-            {adminData?.responses?.map((resp: any) => (
+            {adminData?.responses?.map((resp) => (
               <div
                 key={resp.id}
                 className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-1"
@@ -378,7 +438,7 @@ export default function AdminPage() {
             <span>Fragments Archive State</span>
           </h4>
           <div className="space-y-2">
-            {adminData?.fragments?.map((fr: any) => (
+            {adminData?.fragments?.map((fr) => (
               <div
                 key={fr.id}
                 className="p-3 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs"
@@ -412,7 +472,7 @@ export default function AdminPage() {
             <span>Chapters Timeline</span>
           </h4>
           <div className="space-y-2">
-            {adminData?.chapters?.map((ch: any) => (
+            {adminData?.chapters?.map((ch) => (
               <div
                 key={ch.id}
                 className="p-3 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs"

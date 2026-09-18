@@ -9,11 +9,9 @@ import { Q1_OPTIONS } from "@/lib/case-data";
 import { useThemeColor } from "@/lib/use-theme-color";
 
 /* ─────── Types ─────── */
-interface WheelReward { id?: string; label?: string; description?: string; physicalGiftName?: string; [key: string]: unknown; }
 interface HandcraftedChapter01Props {
-  initialSessionId?: string;
+  initialSessionId: string;
   initialCompleted?: boolean;
-  initialReward?: WheelReward | null;
   onRefreshState?: () => void;
   isLocked?: boolean;
 }
@@ -24,14 +22,6 @@ const ANSWERS = Q1_OPTIONS;
 const ANSWER_ECHOES: Record<string, string> = Object.fromEntries(
   Q1_OPTIONS.map(o => [o.id, o.echo])
 );
-
-/* 4 chapters, Sept 20–23 */
-const CHAPTERS = [
-  { n: 1, title: "The Incident",   date: "sept 20", unlocked: true  },
-  { n: 2, title: "The Sleepy",     date: "sept 21", unlocked: false },
-  { n: 3, title: "The Interrupter", date: "sept 22", unlocked: false },
-  { n: 4, title: "The Cover-Up", date: "sept 23", unlocked: false },
-];
 
 const CHAPTER_2_UNLOCK = new Date("2026-09-21T00:00:00+05:30");
 
@@ -273,7 +263,6 @@ export default function HandcraftedChapter01({
 }: HandcraftedChapter01Props) {
   const [stage, setStage] = useState<Stage>(() => {
     if (initialCompleted) return "horizon";
-    if (typeof window !== "undefined" && localStorage.getItem("p23_ch1_done") === "true") return "horizon";
     return "opening";
   });
   const [visible, setVisible] = useState(true);
@@ -286,7 +275,7 @@ export default function HandcraftedChapter01({
   const [starTaps, setStarTaps] = useState(0);
   const [starPulse, setStarPulse] = useState(false);
   const starTapsRef = useRef(0);
-  const sessionId = useRef(initialSessionId ?? "s_" + Math.random().toString(36).slice(2, 9));
+  const sessionId = useRef(initialSessionId);
 
   const { display: countdownDisplay, expired: countdownExpired } = useCountdown(CHAPTER_2_UNLOCK);
 
@@ -364,7 +353,7 @@ export default function HandcraftedChapter01({
     // stamp sound removed
     // Fire the spin API (gift is always the Lindor box)
     try {
-      await fetch("/api/chapter/spin", {
+      const response = await fetch("/api/chapter/spin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -373,6 +362,7 @@ export default function HandcraftedChapter01({
           preferredRewardIndex: 0,
         }),
       });
+      if (!response.ok) throw new Error(`Unable to save chapter completion (${response.status}).`);
       if (typeof window !== "undefined") {
         localStorage.setItem("p23_ch1_done", "true");
       }
