@@ -10,8 +10,10 @@ import {
   Sparkles,
   RefreshCw,
   CheckCircle,
+  AlertTriangle,
   ArrowLeft,
   Sliders,
+  Trash2,
 } from "lucide-react";
 
 interface AdminReward {
@@ -50,6 +52,7 @@ interface AdminChapter {
 
 interface AdminData {
   simulatedDate: string | null;
+  sessions: Array<{ id: string }>;
   rewards: AdminReward[];
   responses: AdminResponse[];
   fragments: AdminFragment[];
@@ -63,6 +66,9 @@ export default function AdminPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetConfirmation, setResetConfirmation] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   const fetchAdminData = useCallback(async (showError = true) => {
     setLoading(true);
@@ -162,6 +168,45 @@ export default function AdminPage() {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleResetProgress = async () => {
+    if (resetConfirmation !== "RESET") return;
+
+    setResetting(true);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/admin/reset-state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation: resetConfirmation }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "Unable to reset recipient progress.");
+        return;
+      }
+
+      try {
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith("p23_")) localStorage.removeItem(key);
+        }
+      } catch (storageError) {
+        console.warn("Recipient browser progress could not be cleared:", storageError);
+      }
+
+      setShowResetConfirm(false);
+      setResetConfirmation("");
+      setStatusMessage(
+        `Fresh start ready — removed ${data.deleted.sessions} session(s), ${data.deleted.responses} answer(s), and ${data.deleted.rewards} reward record(s).`,
+      );
+      await fetchAdminData(false);
+      setTimeout(() => setStatusMessage(""), 6000);
+    } catch {
+      setErrorMsg("Network error while resetting recipient progress.");
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -500,6 +545,75 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* SECTION 5: RESET TEST DATA */}
+      <section
+        id="reset-test-progress"
+        aria-labelledby="reset-test-progress-title"
+        className="p-6 sm:p-8 rounded-3xl bg-rosewood-600/5 border border-rosewood-400/25 space-y-4"
+      >
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-rosewood-400 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 id="reset-test-progress-title" className="text-base font-serif font-bold text-cream-50">
+              Reset Test Progress
+            </h3>
+            <p className="text-xs text-cream-200/70 font-mono-code mt-1 leading-relaxed">
+              Use this once testing is finished, before sharing the experience. It permanently removes all saved recipient sessions, answers, and rewards. The chapter schedule and admin settings stay unchanged.
+            </p>
+            <p className="text-[11px] text-cream-200/70 font-mono-code mt-2">
+              Currently stored: {adminData?.sessions?.length ?? 0} session(s), {adminData?.responses?.length ?? 0} answer(s), {adminData?.rewards?.length ?? 0} reward record(s).
+            </p>
+          </div>
+        </div>
+
+        {!showResetConfirm ? (
+          <button
+            type="button"
+            onClick={() => setShowResetConfirm(true)}
+            className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-rosewood-400/40 text-xs font-mono-code font-bold uppercase tracking-wider text-rosewood-400 hover:bg-rosewood-500/10 hover:border-rosewood-400 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            Reset all test progress
+          </button>
+        ) : (
+          <div className="p-4 rounded-2xl bg-black/30 border border-rosewood-400/25 space-y-3">
+            <label htmlFor="reset-confirmation" className="block text-xs font-mono-code text-cream-100">
+              Type <span className="font-bold text-rosewood-400">RESET</span> to confirm permanent deletion.
+            </label>
+            <input
+              id="reset-confirmation"
+              value={resetConfirmation}
+              onChange={(event) => setResetConfirmation(event.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+              className="w-full max-w-xs px-3 py-2.5 rounded-xl bg-black/50 border border-white/15 text-cream-50 font-mono-code text-sm tracking-wider focus:border-rosewood-400 focus:outline-none"
+              placeholder="Type RESET"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleResetProgress}
+                disabled={resetConfirmation !== "RESET" || resetting}
+                className="min-h-11 px-4 py-2.5 rounded-xl bg-rosewood-500 text-noir-950 text-xs font-mono-code font-bold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {resetting ? "Resetting..." : "Permanently reset"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResetConfirm(false);
+                  setResetConfirmation("");
+                }}
+                disabled={resetting}
+                className="min-h-11 px-4 py-2.5 rounded-xl border border-white/15 text-xs font-mono-code text-cream-100 disabled:opacity-40"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
