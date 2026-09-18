@@ -220,7 +220,7 @@ export default function HomePage() {
 
   return (
     <ErrorBoundary>
-      <main style={{
+      <main className="recipient-experience" style={{
         position: "fixed",
         inset: 0,
         height: "100dvh",
