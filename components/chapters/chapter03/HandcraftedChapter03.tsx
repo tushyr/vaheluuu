@@ -11,6 +11,7 @@ interface HandcraftedChapter03Props {
   initialSessionId: string;
   initialCompleted?: boolean;
   onRefreshState?: () => void;
+  replayMode?: boolean;
 }
 type Stage = "opening" | "question" | "reflection" | "gift-reveal" | "horizon";
 
@@ -421,7 +422,7 @@ function FierceReflection({ visible, word, onContinue }: { visible: boolean; wor
 const CHAPTER_4_UNLOCK = new Date("2026-09-23T00:00:00+05:30");
 
 /* ─────── Main ─────── */
-export default function HandcraftedChapter03({ initialSessionId, initialCompleted = false, onRefreshState }: HandcraftedChapter03Props) {
+export default function HandcraftedChapter03({ initialSessionId, initialCompleted = false, onRefreshState, replayMode = false }: HandcraftedChapter03Props) {
   const [stage, setStage] = useState<Stage>(() => {
     if (initialCompleted) return "horizon";
     return "opening";
@@ -482,8 +483,8 @@ export default function HandcraftedChapter03({ initialSessionId, initialComplete
     { n: 1, title: "The Incident", date: "sept 20", done: true },
     { n: 2, title: "The Sleepy", date: "sept 21", done: true },
     { n: 3, title: "The Interrupter", date: "sept 22", done: true },
-    { n: 4, title: "The Cover-Up", date: "sept 23", done: isCh4Done },
-  ], [isCh4Done]);
+    { n: 4, title: "The Cover-Up", date: "sept 23", done: replayMode || isCh4Done },
+  ], [isCh4Done, replayMode]);
 
   const handleAnswer = useCallback(async (id: string) => {
     if (chosen) return;
@@ -525,10 +526,14 @@ export default function HandcraftedChapter03({ initialSessionId, initialComplete
               <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", margin: 0 }}>chapter three · the interrupter</p>
             </div>
             <p className="font-display fade-up" style={{ fontSize: "clamp(0.92rem, 2.8vw, 1.15rem)", fontStyle: "italic", fontWeight: 400, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, margin: 0 }}>
-              three down.<br />one more.<br />sept 23. tomorrow.
+              {replayMode ? (
+                <>still interrupting.<br />still unforgettable.<br />pick another whenever.</>
+              ) : (
+                <>three down.<br />one more.<br />sept 23. tomorrow.</>
+              )}
             </p>
             <div style={{ margin: "clamp(0.8rem, 2.5vh, 1.4rem) auto" }} />
-            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: "clamp(0.5rem, 1.8vh, 0.9rem)" }}>four chapters {"·"} four days</p>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: "clamp(0.5rem, 1.8vh, 0.9rem)" }}>{replayMode ? "four chapters · forever yours" : "four chapters · four days"}</p>
             <div style={{ display: "flex", flexDirection: "column", marginBottom: "clamp(0.6rem, 2.2vh, 1.2rem)" }}>
               {chapterTimeline.map(ch => (
                 <div key={ch.n} style={{ display: "flex", alignItems: "center", gap: "0.8rem", padding: "clamp(0.32rem, 1.2vh, 0.5rem) 0", borderBottom: "1px solid rgba(255,255,255,0.06)", opacity: ch.done ? 1 : 0.22 }}>
@@ -538,14 +543,14 @@ export default function HandcraftedChapter03({ initialSessionId, initialComplete
                 </div>
               ))}
             </div>
-            {!countdownExpired && countdownDisplay && (
+            {!replayMode && !countdownExpired && countdownDisplay && (
               <div className="fade-up" style={{ marginBottom: "clamp(0.6rem, 2vh, 1.2rem)" }}>
                 <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.62rem, 1.8vw, 0.7rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: "0.3rem" }}>chapter four opens in</p>
                 <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.1rem, 3.4vw, 1.45rem)", fontStyle: "italic", color: "#C9974A", letterSpacing: "0.06em", margin: 0 }}>{countdownDisplay}</p>
                 <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.75rem, 2.2vw, 0.85rem)", fontStyle: "italic", color: "rgba(255,255,255,0.3)", marginTop: "0.2rem" }}>go eat your vegetable.</p>
               </div>
             )}
-            {countdownExpired && (
+            {!replayMode && countdownExpired && (
               <div className="fade-up" style={{ marginBottom: "clamp(0.8rem, 2vh, 1.4rem)" }}>
                 <p className="font-hand" style={{
                   fontSize: "clamp(0.95rem, 2.8vw, 1.15rem)",

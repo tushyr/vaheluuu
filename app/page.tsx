@@ -5,6 +5,7 @@ import HandcraftedChapter01 from "@/components/chapters/chapter01/HandcraftedCha
 import HandcraftedChapter02 from "@/components/chapters/chapter02/HandcraftedChapter02";
 import HandcraftedChapter03 from "@/components/chapters/chapter03/HandcraftedChapter03";
 import HandcraftedChapter04 from "@/components/chapters/chapter04/HandcraftedChapter04";
+import { isReplayMode } from "@/lib/chapters";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -29,9 +30,182 @@ interface ExperienceState {
   isPrelude: boolean;
   effectiveDateFormatted: string;
   activeChapterKey: string;
+  replayMode: boolean;
   responses: ResponseState[];
   rewards: RewardState[];
   sweetReward: RewardState | null;
+}
+
+type ReplayChapter = "1" | "2" | "3" | "4";
+
+const REPLAY_CHAPTERS: Array<{
+  id: ReplayChapter;
+  numeral: string;
+  title: string;
+  subtitle: string;
+  accent: string;
+}> = [
+  { id: "1", numeral: "I", title: "The Incident", subtitle: "the one with the lindor", accent: "#C4687A" },
+  { id: "2", numeral: "II", title: "The Sleepy", subtitle: "the one with the power bank", accent: "#4ECDC4" },
+  { id: "3", numeral: "III", title: "The Interrupter", subtitle: "the one with youtube", accent: "#F5EFE6" },
+  { id: "4", numeral: "IV", title: "The Cover-Up", subtitle: "the birthday grand finale", accent: "#C9974A" },
+];
+
+function ReplayLibrary({
+  completed,
+  onSelect,
+}: {
+  completed: Record<ReplayChapter, boolean>;
+  onSelect: (chapter: ReplayChapter) => void;
+}) {
+  return (
+    <section
+      aria-labelledby="replay-library-title"
+      style={{
+        position: "fixed",
+        inset: 0,
+        height: "100dvh",
+        width: "100vw",
+        overflowY: "auto",
+        overflowX: "hidden",
+        WebkitOverflowScrolling: "touch",
+        touchAction: "pan-y",
+        background: "radial-gradient(circle at 50% 10%, #241A12 0%, #0E0B09 48%, #080604 100%)",
+        padding: "max(2rem, env(safe-area-inset-top)) clamp(1.1rem, 5vw, 2.5rem) max(2rem, env(safe-area-inset-bottom))",
+        boxSizing: "border-box",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "34rem", margin: "0 auto" }}>
+        <p style={{
+          fontFamily: "'Playfair Display', serif",
+          fontSize: "0.75rem",
+          letterSpacing: "0.24em",
+          textTransform: "uppercase",
+          color: "#C9974A",
+          textAlign: "center",
+          margin: "0 0 0.8rem",
+        }}>
+          project 23 · the keepsake
+        </p>
+        <h1 id="replay-library-title" style={{
+          fontFamily: "'Playfair Display', serif",
+          fontSize: "clamp(2rem, 9vw, 3.2rem)",
+          fontStyle: "italic",
+          fontWeight: 400,
+          lineHeight: 1.08,
+          color: "#F5EFE6",
+          textAlign: "center",
+          margin: 0,
+        }}>
+          The story stays yours.
+        </h1>
+        <p style={{
+          fontFamily: "'Playfair Display', serif",
+          fontSize: "clamp(0.95rem, 3.8vw, 1.08rem)",
+          fontStyle: "italic",
+          lineHeight: 1.55,
+          color: "#BBAE9E",
+          textAlign: "center",
+          margin: "0.8rem auto 1.8rem",
+          maxWidth: "27rem",
+        }}>
+          Pick any chapter, in any order. Come back whenever you want.
+        </p>
+
+        <div style={{ display: "grid", gap: "0.75rem" }}>
+          {REPLAY_CHAPTERS.map((chapter) => (
+            <button
+              key={chapter.id}
+              type="button"
+              className="replay-card"
+              onClick={() => onSelect(chapter.id)}
+              aria-label={`${completed[chapter.id] ? "Replay" : "Open"} chapter ${chapter.numeral}: ${chapter.title}`}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "3rem 1fr auto",
+                alignItems: "center",
+                gap: "0.8rem",
+                width: "100%",
+                minHeight: "78px",
+                padding: "0.9rem 1rem",
+                background: "rgba(14,11,9,0.72)",
+                border: `1px solid ${chapter.accent}55`,
+                borderRadius: "18px",
+                color: "#F5EFE6",
+                cursor: "pointer",
+                textAlign: "left",
+                boxShadow: "0 12px 28px rgba(0,0,0,0.2)",
+              }}
+            >
+              <span aria-hidden="true" style={{
+                display: "grid",
+                placeItems: "center",
+                width: "3rem",
+                height: "3rem",
+                borderRadius: "50%",
+                border: `1px solid ${chapter.accent}88`,
+                color: chapter.accent,
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "0.86rem",
+                letterSpacing: "0.08em",
+              }}>
+                {chapter.numeral}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{
+                  display: "block",
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "1.05rem",
+                  fontStyle: "italic",
+                  lineHeight: 1.25,
+                  color: "#F5EFE6",
+                }}>
+                  {chapter.title}
+                </span>
+                <span style={{
+                  display: "block",
+                  marginTop: "0.2rem",
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "0.78rem",
+                  lineHeight: 1.35,
+                  color: "#8C7A68",
+                }}>
+                  {chapter.subtitle}
+                </span>
+              </span>
+              <span style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "0.15rem",
+                color: completed[chapter.id] ? chapter.accent : "#8C7A68",
+                fontFamily: "'Playfair Display', serif",
+              }}>
+                <span style={{ fontSize: "0.68rem", fontStyle: "italic" }}>
+                  {completed[chapter.id] ? "replay" : "open"}
+                </span>
+                <span aria-hidden="true" style={{ fontSize: "1rem" }}>
+                  {completed[chapter.id] ? "↺" : "→"}
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <p style={{
+          fontFamily: "'Playfair Display', serif",
+          fontSize: "0.78rem",
+          fontStyle: "italic",
+          color: "#6F6154",
+          textAlign: "center",
+          lineHeight: 1.5,
+          margin: "1.5rem 0 0",
+        }}>
+          your answers and memories stay saved on this device.
+        </p>
+      </div>
+    </section>
+  );
 }
 
 function getFallbackState(): ExperienceState {
@@ -57,6 +231,7 @@ function getFallbackState(): ExperienceState {
     isPrelude,
     effectiveDateFormatted: nowIST,
     activeChapterKey,
+    replayMode: isReplayMode(nowIST),
     responses: [],
     rewards: [],
     sweetReward: null,
@@ -109,6 +284,7 @@ export default function HomePage() {
   const [loadingFadeOut, setLoadingFadeOut] = useState(false);
   const [token, setToken] = useState("");
   const [chapOverride, setChapOverride] = useState<string | null>(null);
+  const [replayChapter, setReplayChapter] = useState<ReplayChapter | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -216,7 +392,79 @@ export default function HomePage() {
     activeState.rewards.some((reward) => reward.chapterKey === "forever")
   );
 
-  const isLockedBeforeSept20 = Boolean(!chapOverride && activeState?.isPrelude);
+  const replayUnlocked = Boolean(
+    activeState.replayMode || isReplayMode(activeState.effectiveDateFormatted)
+  );
+  const requestedChapter = chapOverride ?? replayChapter;
+  const isLockedBeforeSept20 = Boolean(!requestedChapter && activeState?.isPrelude);
+
+  let experienceContent: ReactNode = null;
+  if (token && replayUnlocked && !requestedChapter) {
+    experienceContent = (
+      <ReplayLibrary
+        completed={{ "1": isCh1Done, "2": isCh2Done, "3": isCh3Done, "4": isCh4Done }}
+        onSelect={setReplayChapter}
+      />
+    );
+  } else if (token && isLockedBeforeSept20) {
+    experienceContent = (
+      <HandcraftedChapter01
+        initialSessionId={token}
+        initialCompleted={false}
+        isLocked={true}
+        onRefreshState={() => loadState(token)}
+      />
+    );
+  } else if (token && !requestedChapter && !isCh1Done) {
+    experienceContent = (
+      <HandcraftedChapter01
+        initialSessionId={token}
+        initialCompleted={false}
+        isLocked={false}
+        onRefreshState={() => loadState(token)}
+      />
+    );
+  } else if (token && (requestedChapter === "4" || (!requestedChapter && activeState.activeChapterKey === "forever" && isCh3Done))) {
+    experienceContent = (
+      <HandcraftedChapter04
+        key={`chapter-4-${requestedChapter ? "replay" : "scheduled"}`}
+        initialSessionId={token}
+        initialCompleted={requestedChapter ? false : isCh4Done}
+        onRefreshState={() => loadState(token)}
+      />
+    );
+  } else if (token && (requestedChapter === "3" || (!requestedChapter && (activeState.activeChapterKey === "fierce" || activeState.activeChapterKey === "forever") && isCh2Done))) {
+    experienceContent = (
+      <HandcraftedChapter03
+        key={`chapter-3-${requestedChapter ? "replay" : "scheduled"}`}
+        initialSessionId={token}
+        initialCompleted={requestedChapter ? false : isCh3Done}
+        replayMode={replayUnlocked}
+        onRefreshState={() => loadState(token)}
+      />
+    );
+  } else if (token && (requestedChapter === "2" || (!requestedChapter && (activeState.activeChapterKey === "wild" || activeState.activeChapterKey === "fierce" || activeState.activeChapterKey === "forever") && isCh1Done))) {
+    experienceContent = (
+      <HandcraftedChapter02
+        key={`chapter-2-${requestedChapter ? "replay" : "scheduled"}`}
+        initialSessionId={token}
+        initialCompleted={requestedChapter ? false : isCh2Done}
+        replayMode={replayUnlocked}
+        onRefreshState={() => loadState(token)}
+      />
+    );
+  } else if (token) {
+    experienceContent = (
+      <HandcraftedChapter01
+        key={`chapter-1-${requestedChapter ? "replay" : "scheduled"}`}
+        initialSessionId={token}
+        initialCompleted={requestedChapter ? false : isCh1Done}
+        isLocked={false}
+        replayMode={replayUnlocked}
+        onRefreshState={() => loadState(token)}
+      />
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -227,49 +475,45 @@ export default function HomePage() {
         width: "100vw",
         overflow: "hidden",
         overscrollBehavior: "none",
-        touchAction: "none",
+        touchAction: replayUnlocked && !requestedChapter ? "pan-y" : "none",
         background: "transparent",
       }}>
-        {token && ((!chapOverride && isLockedBeforeSept20) ? (
-          <HandcraftedChapter01
-            initialSessionId={token}
-            initialCompleted={false}
-            isLocked={true}
-            onRefreshState={() => loadState(token)}
-          />
-        ) : (!chapOverride && !isCh1Done) ? (
-          <HandcraftedChapter01
-            initialSessionId={token}
-            initialCompleted={isCh1Done}
-            isLocked={false}
-            onRefreshState={() => loadState(token)}
-          />
-        ) : (chapOverride === "4" || (activeState?.activeChapterKey === "forever" && isCh3Done)) ? (
-          <HandcraftedChapter04
-            initialSessionId={token}
-            initialCompleted={isCh4Done}
-            onRefreshState={() => loadState(token)}
-          />
-        ) : (chapOverride === "3" || ((activeState?.activeChapterKey === "fierce" || activeState?.activeChapterKey === "forever") && isCh2Done)) ? (
-          <HandcraftedChapter03
-            initialSessionId={token}
-            initialCompleted={isCh3Done}
-            onRefreshState={() => loadState(token)}
-          />
-        ) : (chapOverride === "2" || ((activeState?.activeChapterKey === "wild" || activeState?.activeChapterKey === "fierce" || activeState?.activeChapterKey === "forever") && isCh1Done)) ? (
-          <HandcraftedChapter02
-            initialSessionId={token}
-            initialCompleted={isCh2Done}
-            onRefreshState={() => loadState(token)}
-          />
-        ) : (
-          <HandcraftedChapter01
-            initialSessionId={token}
-            initialCompleted={isCh1Done}
-            isLocked={false}
-            onRefreshState={() => loadState(token)}
-          />
-        ))}
+        {experienceContent}
+
+        {replayUnlocked && replayChapter && !chapOverride && (
+          <button
+            type="button"
+            className="chapter-library-back"
+            onClick={() => setReplayChapter(null)}
+            aria-label="Back to all chapters"
+            style={{
+              position: "fixed",
+              top: "max(env(safe-area-inset-top, 0px), 0.65rem)",
+              left: "max(env(safe-area-inset-left, 0px), 0.65rem)",
+              zIndex: 9000,
+              minWidth: "44px",
+              minHeight: "44px",
+              padding: "0.55rem 0.8rem",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.35rem",
+              border: "1px solid rgba(201,151,74,0.4)",
+              borderRadius: "9999px",
+              background: "rgba(14,11,9,0.82)",
+              backdropFilter: "blur(8px)",
+              color: "#E3BE7E",
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "0.78rem",
+              fontStyle: "italic",
+              cursor: "pointer",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
+            }}
+          >
+            <span aria-hidden="true">←</span>
+            chapters
+          </button>
+        )}
       </main>
 
       {/* Cinematic loading overlay with smooth crossfade */}

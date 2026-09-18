@@ -297,13 +297,14 @@ export default function AdminPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 pt-2">
           {[
             { label: "19 Sep (Teaser)", date: "2026-09-19T12:00:00.000Z" },
             { label: "20 Sep (Ch 1 Incident)", date: "2026-09-20T12:00:00.000Z" },
             { label: "21 Sep (Ch 2 Sleepy)", date: "2026-09-21T12:00:00.000Z" },
             { label: "22 Sep (Ch 3 Interrupter)", date: "2026-09-22T12:00:00.000Z" },
             { label: "23 Sep (Ch 4 Birthday)", date: "2026-09-23T12:00:00.000Z" },
+            { label: "24 Sep+ (Replay Library)", date: "2026-09-24T12:00:00.000Z" },
             { label: "↺ Reset Real-Time", date: null },
           ].map((preset, idx) => (
             <button

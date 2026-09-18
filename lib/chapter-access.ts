@@ -7,6 +7,7 @@ import {
   formatIndiaDate,
   getActiveChapterKey,
   isChapterAvailable,
+  isReplayMode,
   previousChapterKey,
   type ChapterKey,
 } from "@/lib/chapters";
@@ -24,10 +25,15 @@ export async function assertChapterAccess(
   sessionId: string,
   chapterKey: ChapterKey,
 ): Promise<void> {
-  const active = getActiveChapterKey(formatIndiaDate(effectiveDateForRequest(request)));
+  const effectiveDate = formatIndiaDate(effectiveDateForRequest(request));
+  const active = getActiveChapterKey(effectiveDate);
   if (!isChapterAvailable(chapterKey, active)) {
     throw new ApiError("This chapter is not available yet.", 403);
   }
+
+  // Once the birthday rollout is over, every chapter becomes a permanent
+  // keepsake and no longer requires replaying the earlier chapters first.
+  if (isReplayMode(effectiveDate)) return;
 
   const previous = previousChapterKey(chapterKey);
   if (!previous) return;

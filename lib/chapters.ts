@@ -39,6 +39,8 @@ export const CHAPTERS = [
 
 export type ChapterKey = (typeof CHAPTERS)[number]["key"];
 
+export const REPLAY_UNLOCK_DATE = "2026-09-24";
+
 export const CHAPTER_GIFTS: Record<ChapterKey, {
   id: string;
   label: string;
@@ -76,6 +78,10 @@ export function getActiveChapterKey(effectiveDate: string): ChapterKey | "prelud
     if (effectiveDate >= chapter.unlockDate) active = chapter.key;
   }
   return active;
+}
+
+export function isReplayMode(effectiveDate: string): boolean {
+  return effectiveDate >= REPLAY_UNLOCK_DATE;
 }
 
 export function isChapterAvailable(target: ChapterKey, active: ChapterKey | "prelude"): boolean {
