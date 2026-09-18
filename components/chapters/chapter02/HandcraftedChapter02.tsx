@@ -480,9 +480,6 @@ export default function HandcraftedChapter02({ initialSessionId, initialComplete
       {stage === "horizon" && (
         <div style={{ position: "fixed", inset: 0, height: "100dvh", minHeight: "-webkit-fill-available", width: "100vw", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "clamp(1.2rem, 3.5vh, 2.2rem) clamp(1.2rem, 5vw, 2.2rem)", overflow: "hidden", overscrollBehavior: "none", touchAction: "none", opacity: visible ? 1 : 0, transition: "opacity 0.6s ease", pointerEvents: visible ? "auto" : "none", boxSizing: "border-box" }}>
           <div style={{ width: "100%", maxWidth: "34rem", textAlign: "center" }}>
-            <div className="label-accent" style={{ justifyContent: "center", marginBottom: "clamp(0.6rem, 2vh, 1.2rem)" }}>
-              <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.6rem, 1.8vw, 0.68rem)", letterSpacing: "0.22em", textTransform: "uppercase", color: ELECTRIC, margin: 0 }}>chapter two · the sleepy</p>
-            </div>
             <p className="font-display fade-up" style={{ fontSize: "clamp(0.92rem, 2.8vw, 1.15rem)", fontStyle: "italic", fontWeight: 400, color: "rgba(78,205,196,0.6)", lineHeight: 1.6, margin: 0 }}>
               {replayMode ? (
                 <>still sleepy.<br />still chaotic.<br />pick another whenever.</>

@@ -3,13 +3,13 @@ import "./globals.css";
 import { ServiceWorkerRegistration } from "@/components/utility/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
-  title: "for zaara",
-  description: "a letter, for zaara",
+  title: "zavama",
+  description: "an envelope for zaara",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "for zaara",
+    title: "zavama",
   },
   icons: {
     icon: "/icon.png",
@@ -35,7 +35,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#0E0B09" id="meta-theme-color" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="for zaara" />
+        <meta name="apple-mobile-web-app-title" content="zavama" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

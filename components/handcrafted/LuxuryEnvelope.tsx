@@ -149,7 +149,7 @@ export function LuxuryEnvelope({ onUnseal, disabled = false }: LuxuryEnvelopePro
           transition: "opacity 0.9s ease 0.25s, transform 0.9s ease 0.25s",
         }}
       >
-        a letter
+        an envelope
       </h1>
 
       {/* "for her" — glitching between zaara / मन्नू / واہیلا */}

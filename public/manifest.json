@@ -1,7 +1,7 @@
 {
-  "name": "for zaara",
-  "short_name": "for zaara",
-  "description": "a letter, for zaara",
+  "name": "zavama",
+  "short_name": "zavama",
+  "description": "an envelope for zaara",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
