@@ -84,6 +84,35 @@ body {
 .font-serif       { font-family: 'Playfair Display', Georgia, serif; }
 .font-editorial   { font-family: 'Playfair Display', Georgia, serif; }
 
+/* Keep the cinematic scale on larger screens while making every chapter
+   comfortably readable on a phone. Chapter copy is authored with inline
+   clamp() values, so these scoped floors cover all four chapters centrally. */
+@media (max-width: 640px) {
+  .recipient-experience [style*="font-size: clamp(0.5"],
+  .recipient-experience [style*="font-size: 0.5"],
+  .recipient-experience [style*="font-size: clamp(0.6"],
+  .recipient-experience [style*="font-size: 0.6"] {
+    font-size: 0.75rem !important;
+  }
+
+  .recipient-experience [style*="font-size: clamp(0.7"],
+  .recipient-experience [style*="font-size: 0.7"],
+  .recipient-experience .font-meta {
+    font-size: 0.8125rem !important;
+  }
+
+  .recipient-experience [style*="font-size: clamp(0.8"],
+  .recipient-experience [style*="font-size: 0.8"],
+  .recipient-experience .text-sm {
+    font-size: 0.9375rem !important;
+  }
+
+  .recipient-experience [style*="font-size: clamp(0.9"],
+  .recipient-experience [style*="font-size: 0.9"] {
+    font-size: 1rem !important;
+  }
+}
+
 /* ═══════════════════════════
    WASHI TAPE (PaperElements compat)
 ═══════════════════════════ */

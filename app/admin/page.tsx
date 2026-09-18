@@ -168,7 +168,7 @@ export default function AdminPage() {
   // Login Gate View
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center p-4">
+      <div className="fixed inset-0 h-[100dvh] w-full overflow-y-auto overscroll-y-contain flex items-center justify-center p-4">
         <div className="w-full max-w-md p-8 rounded-3xl glass-panel-gold border border-caramel-500/30 text-center space-y-6 shadow-2xl">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-amberGold-500/10 border border-amberGold-400/40 flex items-center justify-center">
             <ShieldCheck className="w-7 h-7 text-amberGold-400" />
@@ -230,7 +230,7 @@ export default function AdminPage() {
     : "Real-Time (Default)";
 
   return (
-    <div className="min-h-screen w-full px-4 sm:px-8 py-10 max-w-6xl mx-auto space-y-8">
+    <div className="fixed inset-0 h-[100dvh] w-full overflow-y-auto overscroll-y-contain px-4 sm:px-8 py-10 max-w-6xl mx-auto space-y-8">
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
