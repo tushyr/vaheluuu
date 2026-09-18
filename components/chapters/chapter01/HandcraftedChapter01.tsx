@@ -591,8 +591,6 @@ export default function HandcraftedChapter01({
       {stage === "horizon" && (
         <Screen visible={visible} scroll={false}>
           <div style={{ width: "100%", maxWidth: "34rem", textAlign: "center" }}>
-            <Label>{replayMode ? "chapter one · relived." : "chapter one · done."}</Label>
-
             <p className="font-display fade-up" style={{
               fontSize: "clamp(0.92rem,2.8vw,1.15rem)",
               fontStyle: "italic", fontWeight: 400,
