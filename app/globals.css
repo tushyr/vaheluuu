@@ -86,7 +86,7 @@ body {
 
 .replay-card,
 .chapter-library-back {
-  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+  transition: transform 0.22s ease, opacity 0.22s ease;
 }
 
 .replay-card:active,
@@ -102,10 +102,18 @@ body {
 
 @media (hover: hover) {
   .replay-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(227, 190, 126, 0.75) !important;
-    background: rgba(28, 21, 16, 0.92) !important;
+    transform: translateX(0.45rem);
   }
+}
+
+.replay-library::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(201, 151, 74, 0.07), transparent 28rem),
+    linear-gradient(90deg, transparent 0 8%, rgba(201, 151, 74, 0.035) 8% calc(8% + 1px), transparent calc(8% + 1px));
 }
 
 /* Keep the cinematic scale on larger screens while making every chapter

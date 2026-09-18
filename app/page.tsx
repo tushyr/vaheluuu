@@ -43,23 +43,23 @@ const REPLAY_CHAPTERS: Array<{
   numeral: string;
   title: string;
   subtitle: string;
+  date: string;
   accent: string;
 }> = [
-  { id: "1", numeral: "I", title: "The Incident", subtitle: "the one with the lindor", accent: "#C4687A" },
-  { id: "2", numeral: "II", title: "The Sleepy", subtitle: "the one with the power bank", accent: "#4ECDC4" },
-  { id: "3", numeral: "III", title: "The Interrupter", subtitle: "the one with youtube", accent: "#F5EFE6" },
-  { id: "4", numeral: "IV", title: "The Cover-Up", subtitle: "the birthday grand finale", accent: "#C9974A" },
+  { id: "1", numeral: "01", title: "the incident", subtitle: "the one with the lindor", date: "20 sept", accent: "#C4687A" },
+  { id: "2", numeral: "02", title: "the sleepy", subtitle: "the one with the power bank", date: "21 sept", accent: "#4ECDC4" },
+  { id: "3", numeral: "03", title: "the interrupter", subtitle: "the one with youtube", date: "22 sept", accent: "#DDD5C8" },
+  { id: "4", numeral: "04", title: "the cover-up", subtitle: "the birthday grand finale", date: "23 sept", accent: "#C9974A" },
 ];
 
 function ReplayLibrary({
-  completed,
   onSelect,
 }: {
-  completed: Record<ReplayChapter, boolean>;
   onSelect: (chapter: ReplayChapter) => void;
 }) {
   return (
     <section
+      className="replay-library"
       aria-labelledby="replay-library-title"
       style={{
         position: "fixed",
@@ -70,84 +70,83 @@ function ReplayLibrary({
         overflowX: "hidden",
         WebkitOverflowScrolling: "touch",
         touchAction: "pan-y",
-        background: "radial-gradient(circle at 50% 10%, #241A12 0%, #0E0B09 48%, #080604 100%)",
-        padding: "max(2rem, env(safe-area-inset-top)) clamp(1.1rem, 5vw, 2.5rem) max(2rem, env(safe-area-inset-bottom))",
+        background: "#0E0B09",
+        padding: "max(2.2rem, env(safe-area-inset-top)) clamp(1.35rem, 7vw, 3.5rem) max(2rem, env(safe-area-inset-bottom))",
         boxSizing: "border-box",
       }}
     >
-      <div style={{ width: "100%", maxWidth: "34rem", margin: "0 auto" }}>
+      <div style={{
+        position: "relative",
+        zIndex: 1,
+        width: "100%",
+        maxWidth: "34rem",
+        minHeight: "calc(100dvh - 4.4rem)",
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}>
         <p style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: "0.75rem",
-          letterSpacing: "0.24em",
+          fontSize: "clamp(0.62rem, 2vw, 0.72rem)",
+          letterSpacing: "0.22em",
           textTransform: "uppercase",
           color: "#C9974A",
-          textAlign: "center",
-          margin: "0 0 0.8rem",
+          margin: "0 0 clamp(1.4rem, 4vh, 2.2rem)",
         }}>
-          project 23 · the keepsake
+          case file: us · after the four days
         </p>
         <h1 id="replay-library-title" style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: "clamp(2rem, 9vw, 3.2rem)",
+          fontSize: "clamp(2rem, 8.5vw, 3.2rem)",
           fontStyle: "italic",
           fontWeight: 400,
-          lineHeight: 1.08,
+          lineHeight: 1.12,
           color: "#F5EFE6",
-          textAlign: "center",
           margin: 0,
         }}>
-          The story stays yours.
+          four days.<br />still ours.
         </h1>
         <p style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: "clamp(0.95rem, 3.8vw, 1.08rem)",
-          fontStyle: "italic",
-          lineHeight: 1.55,
-          color: "#BBAE9E",
-          textAlign: "center",
-          margin: "0.8rem auto 1.8rem",
+          fontFamily: "'Caveat', cursive",
+          fontSize: "clamp(1.2rem, 5vw, 1.55rem)",
+          lineHeight: 1.35,
+          color: "#C4687A",
+          margin: "0.65rem 0 clamp(1.5rem, 4vh, 2.3rem)",
           maxWidth: "27rem",
         }}>
-          Pick any chapter, in any order. Come back whenever you want.
+          nothing expires here. pick a day and begin again.
         </p>
 
-        <div style={{ display: "grid", gap: "0.75rem" }}>
+        <div style={{ borderTop: "1px solid rgba(201,151,74,0.3)" }}>
           {REPLAY_CHAPTERS.map((chapter) => (
             <button
               key={chapter.id}
               type="button"
               className="replay-card"
               onClick={() => onSelect(chapter.id)}
-              aria-label={`${completed[chapter.id] ? "Replay" : "Open"} chapter ${chapter.numeral}: ${chapter.title}`}
+              aria-label={`Replay chapter ${chapter.numeral}: ${chapter.title}`}
               style={{
                 display: "grid",
-                gridTemplateColumns: "3rem 1fr auto",
+                gridTemplateColumns: "2.35rem 1fr auto",
                 alignItems: "center",
-                gap: "0.8rem",
+                gap: "clamp(0.6rem, 3vw, 1rem)",
                 width: "100%",
-                minHeight: "78px",
-                padding: "0.9rem 1rem",
-                background: "rgba(14,11,9,0.72)",
-                border: `1px solid ${chapter.accent}55`,
-                borderRadius: "18px",
+                minHeight: "76px",
+                padding: "0.8rem 0",
+                background: "none",
+                border: "none",
+                borderBottom: "1px solid rgba(70,57,44,0.72)",
                 color: "#F5EFE6",
                 cursor: "pointer",
                 textAlign: "left",
-                boxShadow: "0 12px 28px rgba(0,0,0,0.2)",
               }}
             >
               <span aria-hidden="true" style={{
-                display: "grid",
-                placeItems: "center",
-                width: "3rem",
-                height: "3rem",
-                borderRadius: "50%",
-                border: `1px solid ${chapter.accent}88`,
                 color: chapter.accent,
                 fontFamily: "'Playfair Display', serif",
-                fontSize: "0.86rem",
-                letterSpacing: "0.08em",
+                fontSize: "clamp(0.72rem, 2vw, 0.8rem)",
+                letterSpacing: "0.12em",
               }}>
                 {chapter.numeral}
               </span>
@@ -155,10 +154,10 @@ function ReplayLibrary({
                 <span style={{
                   display: "block",
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "1.05rem",
+                  fontSize: "clamp(1rem, 3.6vw, 1.15rem)",
                   fontStyle: "italic",
                   lineHeight: 1.25,
-                  color: "#F5EFE6",
+                  color: chapter.accent,
                 }}>
                   {chapter.title}
                 </span>
@@ -166,9 +165,10 @@ function ReplayLibrary({
                   display: "block",
                   marginTop: "0.2rem",
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "0.78rem",
+                  fontSize: "clamp(0.75rem, 2.5vw, 0.84rem)",
+                  fontStyle: "italic",
                   lineHeight: 1.35,
-                  color: "#8C7A68",
+                  color: "#9B8978",
                 }}>
                   {chapter.subtitle}
                 </span>
@@ -176,16 +176,16 @@ function ReplayLibrary({
               <span style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                gap: "0.15rem",
-                color: completed[chapter.id] ? chapter.accent : "#8C7A68",
+                alignItems: "flex-end",
+                gap: "0.2rem",
+                color: "#8C7A68",
                 fontFamily: "'Playfair Display', serif",
               }}>
-                <span style={{ fontSize: "0.68rem", fontStyle: "italic" }}>
-                  {completed[chapter.id] ? "replay" : "open"}
+                <span style={{ fontSize: "clamp(0.62rem, 2vw, 0.7rem)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                  {chapter.date}
                 </span>
-                <span aria-hidden="true" style={{ fontSize: "1rem" }}>
-                  {completed[chapter.id] ? "↺" : "→"}
+                <span aria-hidden="true" style={{ fontSize: "0.78rem", color: chapter.accent }}>
+                  relive →
                 </span>
               </span>
             </button>
@@ -193,15 +193,13 @@ function ReplayLibrary({
         </div>
 
         <p style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: "0.78rem",
-          fontStyle: "italic",
-          color: "#6F6154",
-          textAlign: "center",
-          lineHeight: 1.5,
-          margin: "1.5rem 0 0",
+          fontFamily: "'Caveat', cursive",
+          fontSize: "clamp(1.15rem, 4.5vw, 1.4rem)",
+          color: "#8C7A68",
+          lineHeight: 1.35,
+          margin: "clamp(1.2rem, 3vh, 1.8rem) 0 0",
         }}>
-          your answers and memories stay saved on this device.
+          made for zaara. kept for always.
         </p>
       </div>
     </section>
@@ -402,7 +400,6 @@ export default function HomePage() {
   if (token && replayUnlocked && !requestedChapter) {
     experienceContent = (
       <ReplayLibrary
-        completed={{ "1": isCh1Done, "2": isCh2Done, "3": isCh3Done, "4": isCh4Done }}
         onSelect={setReplayChapter}
       />
     );
