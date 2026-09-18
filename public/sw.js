@@ -1,5 +1,5 @@
-const CACHE_NAME = "project-23-v1";
-const APP_SHELL = ["/", "/manifest.json", "/icon.png"];
+const CACHE_NAME = "project-23-v2";
+const APP_SHELL = ["/", "/manifest.json", "/zavama-icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
