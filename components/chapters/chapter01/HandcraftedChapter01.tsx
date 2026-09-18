@@ -194,25 +194,6 @@ function GiftReveal({ visible, moodId, onDone }: {
       transition: "opacity 0.6s ease",
       boxSizing: "border-box",
     }}>
-      {/* Pinned skip button: stays at top right of viewport, never scrolls */}
-      <button
-        onClick={() => { setShown(lines.length); setShowCta(true); }}
-        className="cta-link"
-        style={{
-          position: "absolute",
-          top: "max(env(safe-area-inset-top, 0px), 1.2rem)",
-          right: "max(env(safe-area-inset-right, 0px), 1.5rem)",
-          fontSize: "clamp(0.75rem, 2.2vw, 0.82rem)",
-          color: "rgba(140,122,104,0.5)",
-          opacity: showCta ? 0 : 1,
-          pointerEvents: showCta ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-          zIndex: 10,
-        }}
-      >
-        skip →
-      </button>
-
       <div style={{ maxWidth: "34rem", width: "100%" }}>
         {lines.slice(0, shown).map((line, i) => {
           if ("gap" in line) return <div key={i} style={{ height: "0.5rem" }} />;
