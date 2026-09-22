@@ -774,7 +774,7 @@ function getRandomScramble(target: string) {
 }
 
 /* ─────── Secret post-credits ending ─────── */
-const VIDEO_SRC = "/assets/secret-ending.mp4.mp4";
+const VIDEO_SRC = "/assets/secret-ending.mp4";
 const MUSIC_SRC = "/assets/secret-music.mp3";
 
 type SecretPhase = "hook" | "error" | "video";
@@ -1031,6 +1031,7 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
         src={VIDEO_SRC}
         muted={muted}
         playsInline
+        preload="auto"
         style={{
           position: "absolute", inset: 0,
           width: "100%", height: "100%",
