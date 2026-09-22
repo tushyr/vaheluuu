@@ -1,4 +1,4 @@
-const CACHE_NAME = "project-23-v2";
+const CACHE_NAME = "project-23-v3";
 const APP_SHELL = ["/", "/manifest.json", "/zavama-icon.png"];
 
 self.addEventListener("install", (event) => {
