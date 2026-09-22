@@ -13,7 +13,7 @@ interface HandcraftedChapter04Props {
   initialCompleted?: boolean;
   onRefreshState?: () => void;
 }
-type Stage = "opening" | "question" | "sentence-reveal" | "love-reveal" | "final" | "secret";
+type Stage = "opening" | "question" | "sentence-reveal" | "love-reveal" | "final" | "secret" | "done";
 
 /* ─────── Sentence fragment — Word 4 of 4 ─────── */
 const ANSWERS = Q4_OPTIONS;
@@ -67,7 +67,7 @@ const FRAMES = [
 /* ─────── LOVE YOU gifts ─────── */
 // Order: L(indor) → p(O)wer bank → (VE)getable → (YOU)tube = LOVE YOU
 const LOVE_GIFTS = [
-  { prefix: "",          highlight: "L",   suffix: "indor",           plain: "a lindor box."         },
+  { prefix: "Wede",      highlight: "l",   suffix: "'s Chocolates", plain: "wedel's chocolates."  },
   { prefix: "p",         highlight: "O",   suffix: "wer bank",        plain: "a power bank."         },
   { prefix: "a random ", highlight: "VE",  suffix: "getable.",        plain: "a random vegetable."   },
   { prefix: "",          highlight: "YOU", suffix: "tube premium",    plain: "youtube premium."      },
@@ -625,7 +625,7 @@ function LoveReveal({ visible, onDone }: { visible: boolean; onDone: () => void 
         )}
 
         {/* Plain gifts — no highlights, just sitting there (phases 4-7) */}
-        {phase >= 4 && phase < 9 && plainGiftEl("a lindor box.", 0)}
+        {phase >= 4 && phase < 9 && plainGiftEl("wedel's chocolates.", 0)}
         {phase >= 5 && phase < 9 && plainGiftEl("a power bank.", 1)}
         {phase >= 6 && phase < 9 && plainGiftEl("a random vegetable.", 2)}
         {phase >= 7 && phase < 9 && plainGiftEl("youtube premium.", 3)}
@@ -1105,6 +1105,13 @@ function FinalScreen({
     setTimeout(() => setStarPulse(false), 220);
 
     if (next >= 5) {
+      // 5th tap → secret ending
+      haptic([30, 50, 80, 50, 150]);
+      starTapsRef.current = 0;
+      setStarTaps(0);
+      onSecret();
+    } else if (next >= 3) {
+      // 3rd tap → easter egg message + confetti
       haptic([30, 40, 50, 60, 100]);
       setEasterEgg(true);
       confetti({
@@ -1116,7 +1123,6 @@ function FinalScreen({
         zIndex: 9999,
         disableForReducedMotion: true,
       });
-      starTapsRef.current = 0;
     } else {
       haptic(25);
     }
@@ -1171,12 +1177,6 @@ function FinalScreen({
     }
   }, [englishShown]);
 
-  // Auto-trigger secret ending 10s after actions appear
-  useEffect(() => {
-    if (!showActions) return;
-    const t = setTimeout(() => onSecret(), 10000);
-    return () => clearTimeout(t);
-  }, [showActions, onSecret]);
 
   // Sync theme-color when case summary modal opens/closes
   useEffect(() => {
@@ -1557,6 +1557,66 @@ function FinalScreen({
   );
 }
 
+/* ─────── End screen — shown after the secret video finishes ─────── */
+function EndScreen() {
+  useThemeColor("#0A0805");
+  const [shown, setShown] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setShown(true), 600); return () => clearTimeout(t); }, []);
+  return (
+    <div style={{
+      position: "fixed", inset: 0, height: "100dvh", width: "100vw",
+      background: "#0A0805",
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      padding: "clamp(2rem,6vw,4rem)",
+      overflowX: "hidden", overflowY: "hidden",
+      overscrollBehavior: "none", touchAction: "none",
+      boxSizing: "border-box",
+    }}>
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        background: "radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,0.6) 100%)",
+      }} />
+      {shown && (
+        <div style={{ textAlign: "center", maxWidth: "26rem", width: "100%", position: "relative" }}>
+          <p className="fade-up" style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(0.85rem,2.8vw,1.1rem)",
+            fontStyle: "italic", fontWeight: 400,
+            color: "#8C7A68",
+            margin: "0 0 clamp(0.6rem,2vh,1rem) 0",
+            letterSpacing: "0.08em",
+          }}>
+            fin.
+          </p>
+          <p className="fade-up" style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(1.1rem,3.5vw,1.5rem)",
+            fontStyle: "italic", fontWeight: 400,
+            color: "#F5EFE6",
+            margin: "0 0 clamp(1.2rem,4vh,2rem) 0",
+            letterSpacing: "0.02em", lineHeight: 1.4,
+            animationDelay: "0.8s",
+          }}>
+            happy birthday, zaara.
+          </p>
+          <p className="fade-up" style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(0.78rem,2.4vw,0.92rem)",
+            fontStyle: "italic", fontWeight: 400,
+            color: "rgba(140,122,104,0.6)",
+            margin: 0,
+            letterSpacing: "0.05em",
+            animationDelay: "1.8s",
+          }}>
+            see you in october. ✦
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─────── Main ─────── */
 export default function HandcraftedChapter04({
   initialSessionId,
@@ -1769,8 +1829,11 @@ export default function HandcraftedChapter04({
 
       {/* 6 — SECRET ENDING */}
       {stage === "secret" && (
-        <SecretEnding onBack={handleReplay} />
+        <SecretEnding onBack={() => goTo("done")} />
       )}
+
+      {/* 7 — END SCREEN */}
+      {stage === "done" && <EndScreen />}
     </>
   );
 }
