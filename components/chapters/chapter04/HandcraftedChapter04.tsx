@@ -1105,7 +1105,6 @@ function FinalScreen({
   }, [evidenceValues, q4Val]);
 
   const handleStarTap = () => {
-    if (easterEgg) return;
     const next = starTapsRef.current + 1;
     starTapsRef.current = next;
     setStarTaps(next);
@@ -1117,9 +1116,10 @@ function FinalScreen({
       haptic([30, 50, 80, 50, 150]);
       starTapsRef.current = 0;
       setStarTaps(0);
+      setEasterEgg(false);
       onSecret();
-    } else if (next >= 3) {
-      // 3rd tap → easter egg message + confetti
+    } else if (next === 3) {
+      // 3rd tap exactly → show easter egg message + confetti, but keep counting
       haptic([30, 40, 50, 60, 100]);
       setEasterEgg(true);
       confetti({
