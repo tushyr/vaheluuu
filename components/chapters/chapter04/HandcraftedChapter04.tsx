@@ -785,7 +785,7 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
   const [hookLine, setHookLine] = useState(0);
   const [errorVisible, setErrorVisible] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const fadeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -837,7 +837,15 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
       fadeIntervalRef.current = fadeOut;
     }
     const vid = videoRef.current;
-    if (vid) { vid.muted = true; vid.play().catch(() => {}); }
+    if (vid) {
+      vid.muted = false;
+      vid.play().catch(() => {
+        // iOS blocked unmuted autoplay — fall back to muted
+        vid.muted = true;
+        setMuted(true);
+        vid.play().catch(() => {});
+      });
+    }
   }, [phase]);
 
   const handleErrorClick = () => { setPhase("video"); setVideoReady(true); };
