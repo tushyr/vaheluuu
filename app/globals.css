@@ -166,6 +166,38 @@ body {
 }
 .fade-up { animation: fadeUp 0.65s ease-out both; }
 
+/* ── Secret ending animations ── */
+@keyframes terminalCursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.terminal-cursor { animation: terminalCursor 1s step-end infinite; }
+
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes glitchShake {
+  0%, 100% { transform: translate(0); }
+  10%       { transform: translate(-3px, 1px); }
+  20%       { transform: translate(3px, -1px); }
+  30%       { transform: translate(-2px, 2px); }
+  40%       { transform: translate(2px, -2px); }
+  50%       { transform: translate(-1px, 3px); }
+  60%       { transform: translate(3px, 1px); }
+  70%       { transform: translate(-2px, -1px); }
+  80%       { transform: translate(1px, 2px); }
+  90%       { transform: translate(-1px, -3px); }
+}
+.glitch-shake { animation: glitchShake 0.35s steps(2) infinite; }
+
+@keyframes errorFlicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 24%, 55%                            { opacity: 0; }
+}
+.error-flicker { animation: errorFlicker 3.5s infinite; }
+
 /* Slide-fade — for screen transitions and cinematic moments */
 @keyframes slideFadeIn {
   from { opacity: 0; transform: translateY(22px); }

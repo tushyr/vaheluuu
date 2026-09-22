@@ -13,7 +13,7 @@ interface HandcraftedChapter04Props {
   initialCompleted?: boolean;
   onRefreshState?: () => void;
 }
-type Stage = "opening" | "question" | "sentence-reveal" | "love-reveal" | "final";
+type Stage = "opening" | "question" | "sentence-reveal" | "love-reveal" | "final" | "secret";
 
 /* ─────── Sentence fragment — Word 4 of 4 ─────── */
 const ANSWERS = Q4_OPTIONS;
@@ -773,16 +773,268 @@ function getRandomScramble(target: string) {
   return out;
 }
 
+/* ─────── Secret post-credits ending ─────── */
+const VIDEO_SRC = "/assets/secret-ending.mp4";
+
+type SecretPhase = "hook" | "error" | "video";
+
+function SecretEnding({ onBack }: { onBack: () => void }) {
+  useThemeColor("#000000");
+  const [phase, setPhase] = useState<SecretPhase>("hook");
+  const [hookLine, setHookLine] = useState(0); // 0 = none, 1 = "hold on.", 2 = second line
+  const [errorVisible, setErrorVisible] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Phase 1: "hook" — lines appear then auto-advance to error
+  useEffect(() => {
+    if (phase !== "hook") return;
+    const t1 = setTimeout(() => setHookLine(1), 800);
+    const t2 = setTimeout(() => setHookLine(2), 3200);
+    const t3 = setTimeout(() => {
+      setPhase("error");
+      setTimeout(() => setErrorVisible(true), 300);
+    }, 6000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [phase]);
+
+  // Phase 3: video — play on enter
+  useEffect(() => {
+    if (phase !== "video") return;
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.muted = true;
+    vid.play().catch(() => {});
+  }, [phase]);
+
+  const handleErrorClick = () => {
+    setPhase("video");
+    setVideoReady(true);
+  };
+
+  const handleUnmute = () => {
+    setMuted(false);
+    if (videoRef.current) videoRef.current.muted = false;
+  };
+
+  /* ── Render: hook phase ── */
+  if (phase === "hook") {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, height: "100dvh", width: "100vw",
+        background: "#000000", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        padding: "clamp(1.5rem,5vw,3rem)",
+        overflowX: "hidden", overflowY: "hidden",
+        overscrollBehavior: "none", touchAction: "none",
+        boxSizing: "border-box",
+      }}>
+        <div style={{ textAlign: "center", maxWidth: "28rem", width: "100%" }}>
+          {hookLine >= 1 && (
+            <p className="fade-up" style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(1.4rem,5vw,2.2rem)",
+              fontStyle: "italic", fontWeight: 400,
+              color: "#F5EFE6", margin: "0 0 clamp(1.2rem,4vh,2rem) 0",
+              letterSpacing: "0.02em",
+            }}>
+              hold on.
+            </p>
+          )}
+          {hookLine >= 2 && (
+            <p className="fade-up" style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(0.95rem,3vw,1.25rem)",
+              fontStyle: "italic", fontWeight: 400,
+              color: "rgba(245,239,230,0.55)",
+              margin: 0, letterSpacing: "0.04em",
+            }}>
+              do you think that's everything?
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Render: error phase ── */
+  if (phase === "error") {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, height: "100dvh", width: "100vw",
+        background: "#000000",
+        overflowX: "hidden", overflowY: "hidden",
+        overscrollBehavior: "none", touchAction: "none",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "clamp(1.2rem,4vw,2.5rem)", boxSizing: "border-box",
+      }}>
+        {/* Scanline overlay */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
+          background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.015) 2px, rgba(0,255,0,0.015) 4px)",
+        }} />
+
+        {/* Scrolling scanline beam */}
+        <div style={{
+          position: "absolute", left: 0, right: 0, height: "80px", zIndex: 2,
+          background: "linear-gradient(to bottom, transparent, rgba(0,255,0,0.04), transparent)",
+          animation: "scanline 4s linear infinite",
+          pointerEvents: "none",
+        }} />
+
+        {/* Error card */}
+        <div
+          className={errorVisible ? "fade-up" : ""}
+          style={{
+            position: "relative", zIndex: 3,
+            border: "1px solid rgba(0,255,0,0.5)",
+            background: "rgba(0,12,0,0.95)",
+            padding: "clamp(1.5rem,5vw,2.5rem) clamp(1.2rem,4vw,2rem)",
+            maxWidth: "34rem", width: "100%",
+            boxShadow: "0 0 30px rgba(0,255,0,0.12), inset 0 0 20px rgba(0,255,0,0.04)",
+            fontFamily: "'Courier New', monospace",
+          }}
+        >
+          {/* Header bar */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: "0.5rem",
+            marginBottom: "1.2rem",
+            borderBottom: "1px solid rgba(0,255,0,0.25)",
+            paddingBottom: "0.75rem",
+          }}>
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f56" }} />
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ffbd2e" }} />
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#27c93f" }} />
+            <span style={{ marginLeft: "0.5rem", fontSize: "clamp(0.6rem,1.8vw,0.7rem)", color: "rgba(0,255,0,0.4)", letterSpacing: "0.15em" }}>
+              SYSTEM_TERMINAL v2.3.09
+            </span>
+          </div>
+
+          <p className="error-flicker" style={{
+            fontSize: "clamp(0.65rem,2vw,0.78rem)", color: "#ff4444",
+            letterSpacing: "0.18em", textTransform: "uppercase",
+            margin: "0 0 0.8rem 0",
+          }}>
+            !! SYSTEM FAILURE !!
+          </p>
+
+          <div style={{ borderTop: "1px solid rgba(0,255,0,0.2)", margin: "0 0 1rem 0" }} />
+
+          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.8)", margin: "0 0 0.4rem 0", letterSpacing: "0.06em" }}>
+            {"> ERROR 0x50_LOVE_OVERFLOW"}
+          </p>
+          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.6)", margin: "0 0 0.2rem 0", letterSpacing: "0.04em" }}>
+            {"project_23.exe has encountered"}
+          </p>
+          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.6)", margin: "0 0 0.2rem 0", letterSpacing: "0.04em" }}>
+            {"an unexpected memory allocation."}
+          </p>
+          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.4)", margin: "0 0 1.5rem 0", letterSpacing: "0.04em" }}>
+            {"reason: too_much_love_stored."}
+          </p>
+
+          <button
+            onClick={handleErrorClick}
+            style={{
+              display: "block", width: "100%",
+              border: "1px solid rgba(0,255,0,0.6)",
+              background: "transparent",
+              color: "rgba(0,255,0,0.9)",
+              fontFamily: "'Courier New', monospace",
+              fontSize: "clamp(0.72rem,2.2vw,0.85rem)",
+              letterSpacing: "0.2em",
+              padding: "clamp(0.7rem,2vh,1rem)",
+              cursor: "pointer",
+              animation: "terminalCursor 1.4s step-end infinite",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            [ CLICK TO CONTINUE ]
+          </button>
+
+          <p style={{
+            marginTop: "0.9rem",
+            fontSize: "clamp(0.55rem,1.5vw,0.64rem)",
+            color: "rgba(0,255,0,0.2)",
+            letterSpacing: "0.1em",
+            textAlign: "center",
+          }}>
+            {"dump: 0x23092026 · core: p23_zavama.log"}
+            <span className="terminal-cursor"> _</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Render: video phase ── */
+  return (
+    <div style={{
+      position: "fixed", inset: 0, height: "100dvh", width: "100vw",
+      background: "#000000",
+      overflowX: "hidden", overflowY: "hidden",
+      overscrollBehavior: "none", touchAction: "none",
+    }}>
+      <video
+        ref={videoRef}
+        src={VIDEO_SRC}
+        muted={muted}
+        playsInline
+        style={{
+          position: "absolute", inset: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover",
+        }}
+        onEnded={onBack}
+      />
+
+      {/* Tap-to-unmute hint — fades after 4s */}
+      {videoReady && muted && (
+        <button
+          onClick={handleUnmute}
+          className="fade-up"
+          style={{
+            position: "absolute",
+            bottom: "max(env(safe-area-inset-bottom, 0px), 2rem)",
+            left: "50%", transform: "translateX(-50%)",
+            background: "rgba(0,0,0,0.6)",
+            border: "1px solid rgba(255,255,255,0.3)",
+            color: "rgba(255,255,255,0.8)",
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(0.72rem,2vw,0.82rem)",
+            fontStyle: "italic",
+            letterSpacing: "0.08em",
+            padding: "0.6rem 1.2rem",
+            borderRadius: "2rem",
+            cursor: "pointer",
+            WebkitTapHighlightColor: "transparent",
+            zIndex: 10,
+            minHeight: "44px",
+            display: "inline-flex",
+            alignItems: "center",
+          }}
+        >
+          tap for sound ♪
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ─────── Final screen - Urdu reveal then English sign-off ─────── */
 function FinalScreen({
   visible,
   evidenceValues,
   q4Val,
   onReplay,
+  onSecret,
 }: {
   visible: boolean;
   evidenceValues: { q1: string; q2: string; q3: string };
   q4Val: string | null;
   onReplay: () => void;
+  onSecret: () => void;
 }) {
   useThemeColor("#F5EFE6");
   const [urduShown, setUrduShown] = useState(0);
@@ -877,6 +1129,13 @@ function FinalScreen({
       return () => clearTimeout(t);
     }
   }, [englishShown]);
+
+  // Auto-trigger secret ending 10s after actions appear
+  useEffect(() => {
+    if (!showActions) return;
+    const t = setTimeout(() => onSecret(), 10000);
+    return () => clearTimeout(t);
+  }, [showActions, onSecret]);
 
   // Sync theme-color when case summary modal opens/closes
   useEffect(() => {
@@ -1463,7 +1722,13 @@ export default function HandcraftedChapter04({
           evidenceValues={evidenceValues}
           q4Val={chosen || (typeof window !== "undefined" ? localStorage.getItem("p23_q4_id") : null) || "D1"}
           onReplay={handleReplay}
+          onSecret={() => goTo("secret")}
         />
+      )}
+
+      {/* 6 — SECRET ENDING */}
+      {stage === "secret" && (
+        <SecretEnding onBack={handleReplay} />
       )}
     </>
   );
