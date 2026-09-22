@@ -774,70 +774,105 @@ function getRandomScramble(target: string) {
 }
 
 /* ─────── Secret post-credits ending ─────── */
-const VIDEO_SRC = "/assets/secret-ending.mp4";
+const VIDEO_SRC = "/assets/secret-ending.mp4.mp4";
+const MUSIC_SRC = "/assets/secret-music.mp3";
 
 type SecretPhase = "hook" | "error" | "video";
 
 function SecretEnding({ onBack }: { onBack: () => void }) {
-  useThemeColor("#000000");
+  useThemeColor("#0A0805");
   const [phase, setPhase] = useState<SecretPhase>("hook");
-  const [hookLine, setHookLine] = useState(0); // 0 = none, 1 = "hold on.", 2 = second line
+  const [hookLine, setHookLine] = useState(0);
   const [errorVisible, setErrorVisible] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
+  const fadeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Phase 1: "hook" — lines appear then auto-advance to error
+  // Start music on mount, fade in
+  useEffect(() => {
+    const audio = new Audio(MUSIC_SRC);
+    audio.loop = true;
+    audio.volume = 0;
+    musicRef.current = audio;
+    audio.play().catch(() => {});
+    let vol = 0;
+    const fadeIn = setInterval(() => {
+      vol = Math.min(vol + 0.04, 0.6);
+      audio.volume = vol;
+      if (vol >= 0.6) clearInterval(fadeIn);
+    }, 80);
+    return () => {
+      clearInterval(fadeIn);
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  // Phase 1 → error auto-advance
   useEffect(() => {
     if (phase !== "hook") return;
-    const t1 = setTimeout(() => setHookLine(1), 800);
-    const t2 = setTimeout(() => setHookLine(2), 3200);
+    const t1 = setTimeout(() => setHookLine(1), 900);
+    const t2 = setTimeout(() => setHookLine(2), 3400);
     const t3 = setTimeout(() => {
       setPhase("error");
-      setTimeout(() => setErrorVisible(true), 300);
-    }, 6000);
+      setTimeout(() => setErrorVisible(true), 350);
+    }, 6500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [phase]);
 
-  // Phase 3: video — play on enter
+  // Fade out music + start video when entering video phase
   useEffect(() => {
     if (phase !== "video") return;
+    const audio = musicRef.current;
+    if (audio) {
+      let vol = audio.volume;
+      const fadeOut = setInterval(() => {
+        vol = Math.max(vol - 0.05, 0);
+        audio.volume = vol;
+        if (vol <= 0) { clearInterval(fadeOut); audio.pause(); }
+      }, 60);
+      fadeIntervalRef.current = fadeOut;
+    }
     const vid = videoRef.current;
-    if (!vid) return;
-    vid.muted = true;
-    vid.play().catch(() => {});
+    if (vid) { vid.muted = true; vid.play().catch(() => {}); }
   }, [phase]);
 
-  const handleErrorClick = () => {
-    setPhase("video");
-    setVideoReady(true);
-  };
-
+  const handleErrorClick = () => { setPhase("video"); setVideoReady(true); };
   const handleUnmute = () => {
     setMuted(false);
     if (videoRef.current) videoRef.current.muted = false;
   };
 
-  /* ── Render: hook phase ── */
+  /* ── Hook phase — warm dark, Playfair italic, matches site ── */
   if (phase === "hook") {
     return (
       <div style={{
         position: "fixed", inset: 0, height: "100dvh", width: "100vw",
-        background: "#000000", display: "flex", flexDirection: "column",
+        background: "#0A0805",
+        display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        padding: "clamp(1.5rem,5vw,3rem)",
+        padding: "clamp(2rem,6vw,4rem)",
         overflowX: "hidden", overflowY: "hidden",
         overscrollBehavior: "none", touchAction: "none",
         boxSizing: "border-box",
       }}>
-        <div style={{ textAlign: "center", maxWidth: "28rem", width: "100%" }}>
+        {/* Vignette — same as Ch4 opening frames */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,0.6) 100%)",
+        }} />
+        <div style={{ textAlign: "center", maxWidth: "26rem", width: "100%", position: "relative" }}>
           {hookLine >= 1 && (
             <p className="fade-up" style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: "clamp(1.4rem,5vw,2.2rem)",
+              fontSize: "clamp(1.6rem,5.5vw,2.5rem)",
               fontStyle: "italic", fontWeight: 400,
-              color: "#F5EFE6", margin: "0 0 clamp(1.2rem,4vh,2rem) 0",
-              letterSpacing: "0.02em",
+              color: "#F5EFE6",
+              margin: "0 0 clamp(1.4rem,4.5vh,2.4rem) 0",
+              letterSpacing: "0.01em", lineHeight: 1.2,
             }}>
               hold on.
             </p>
@@ -845,12 +880,12 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
           {hookLine >= 2 && (
             <p className="fade-up" style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: "clamp(0.95rem,3vw,1.25rem)",
+              fontSize: "clamp(0.9rem,2.8vw,1.15rem)",
               fontStyle: "italic", fontWeight: 400,
-              color: "rgba(245,239,230,0.55)",
-              margin: 0, letterSpacing: "0.04em",
+              color: "#8C7A68",
+              margin: 0, letterSpacing: "0.05em", lineHeight: 1.6,
             }}>
-              do you think that's everything?
+              do you think that&apos;s everything?
             </p>
           )}
         </div>
@@ -858,7 +893,7 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
     );
   }
 
-  /* ── Render: error phase ── */
+  /* ── Error phase — intentional contrast: amber-on-dark terminal ── */
   if (phase === "error") {
     return (
       <div style={{
@@ -867,19 +902,18 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
         overflowX: "hidden", overflowY: "hidden",
         overscrollBehavior: "none", touchAction: "none",
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "clamp(1.2rem,4vw,2.5rem)", boxSizing: "border-box",
+        padding: "clamp(1.2rem,4vw,2rem)", boxSizing: "border-box",
       }}>
-        {/* Scanline overlay */}
+        {/* Scanlines */}
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
-          background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.015) 2px, rgba(0,255,0,0.015) 4px)",
+          background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(201,151,74,0.02) 2px, rgba(201,151,74,0.02) 4px)",
         }} />
-
-        {/* Scrolling scanline beam */}
+        {/* Moving beam */}
         <div style={{
-          position: "absolute", left: 0, right: 0, height: "80px", zIndex: 2,
-          background: "linear-gradient(to bottom, transparent, rgba(0,255,0,0.04), transparent)",
-          animation: "scanline 4s linear infinite",
+          position: "absolute", left: 0, right: 0, height: "60px", zIndex: 2,
+          background: "linear-gradient(to bottom, transparent, rgba(201,151,74,0.04), transparent)",
+          animation: "scanline 5s linear infinite",
           pointerEvents: "none",
         }} />
 
@@ -888,79 +922,87 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
           className={errorVisible ? "fade-up" : ""}
           style={{
             position: "relative", zIndex: 3,
-            border: "1px solid rgba(0,255,0,0.5)",
-            background: "rgba(0,12,0,0.95)",
-            padding: "clamp(1.5rem,5vw,2.5rem) clamp(1.2rem,4vw,2rem)",
-            maxWidth: "34rem", width: "100%",
-            boxShadow: "0 0 30px rgba(0,255,0,0.12), inset 0 0 20px rgba(0,255,0,0.04)",
+            border: "1px solid rgba(201,151,74,0.3)",
+            background: "rgba(10,8,5,0.98)",
+            padding: "clamp(1.4rem,5vw,2.2rem) clamp(1.2rem,4vw,1.8rem)",
+            maxWidth: "32rem", width: "100%",
+            boxShadow: "0 0 40px rgba(201,151,74,0.07), inset 0 0 30px rgba(201,151,74,0.03)",
             fontFamily: "'Courier New', monospace",
           }}
         >
-          {/* Header bar */}
+          {/* macOS traffic lights */}
           <div style={{
-            display: "flex", alignItems: "center", gap: "0.5rem",
-            marginBottom: "1.2rem",
-            borderBottom: "1px solid rgba(0,255,0,0.25)",
-            paddingBottom: "0.75rem",
+            display: "flex", alignItems: "center", gap: "0.45rem",
+            marginBottom: "1.1rem",
+            borderBottom: "1px solid rgba(201,151,74,0.15)",
+            paddingBottom: "0.7rem",
           }}>
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f56" }} />
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ffbd2e" }} />
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#27c93f" }} />
-            <span style={{ marginLeft: "0.5rem", fontSize: "clamp(0.6rem,1.8vw,0.7rem)", color: "rgba(0,255,0,0.4)", letterSpacing: "0.15em" }}>
-              SYSTEM_TERMINAL v2.3.09
+            <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#ff5f56", opacity: 0.7 }} />
+            <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#ffbd2e", opacity: 0.7 }} />
+            <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#27c93f", opacity: 0.4 }} />
+            <span style={{
+              marginLeft: "0.4rem",
+              fontSize: "clamp(0.55rem,1.6vw,0.65rem)",
+              color: "rgba(201,151,74,0.28)",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+            }}>
+              project_23 — terminal
             </span>
           </div>
 
           <p className="error-flicker" style={{
-            fontSize: "clamp(0.65rem,2vw,0.78rem)", color: "#ff4444",
-            letterSpacing: "0.18em", textTransform: "uppercase",
-            margin: "0 0 0.8rem 0",
+            fontSize: "clamp(0.62rem,1.8vw,0.72rem)",
+            color: "#C4687A",
+            letterSpacing: "0.15em", textTransform: "uppercase",
+            margin: "0 0 0.7rem 0", fontWeight: 600,
           }}>
-            !! SYSTEM FAILURE !!
+            !! critical error !!
           </p>
 
-          <div style={{ borderTop: "1px solid rgba(0,255,0,0.2)", margin: "0 0 1rem 0" }} />
+          <div style={{ borderTop: "1px solid rgba(201,151,74,0.12)", margin: "0 0 0.9rem 0" }} />
 
-          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.8)", margin: "0 0 0.4rem 0", letterSpacing: "0.06em" }}>
-            {"> ERROR 0x50_LOVE_OVERFLOW"}
+          <p style={{ fontSize: "clamp(0.68rem,2vw,0.8rem)", color: "rgba(201,151,74,0.75)", margin: "0 0 0.35rem 0", letterSpacing: "0.04em" }}>
+            {"> ERR_0x23 · memory_overflow"}
           </p>
-          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.6)", margin: "0 0 0.2rem 0", letterSpacing: "0.04em" }}>
-            {"project_23.exe has encountered"}
+          <p style={{ fontSize: "clamp(0.68rem,2vw,0.8rem)", color: "rgba(245,239,230,0.4)", margin: "0 0 0.18rem 0", letterSpacing: "0.03em" }}>
+            {"  process: project_23.exe"}
           </p>
-          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.6)", margin: "0 0 0.2rem 0", letterSpacing: "0.04em" }}>
-            {"an unexpected memory allocation."}
+          <p style={{ fontSize: "clamp(0.68rem,2vw,0.8rem)", color: "rgba(245,239,230,0.4)", margin: "0 0 0.18rem 0", letterSpacing: "0.03em" }}>
+            {"  cause:   too_much_love_stored"}
           </p>
-          <p style={{ fontSize: "clamp(0.7rem,2vw,0.82rem)", color: "rgba(0,255,0,0.4)", margin: "0 0 1.5rem 0", letterSpacing: "0.04em" }}>
-            {"reason: too_much_love_stored."}
+          <p style={{ fontSize: "clamp(0.68rem,2vw,0.8rem)", color: "rgba(245,239,230,0.22)", margin: "0 0 1.4rem 0", letterSpacing: "0.03em" }}>
+            {"  core:    p23_zavama.log · 0x23092026"}
           </p>
 
           <button
             onClick={handleErrorClick}
             style={{
               display: "block", width: "100%",
-              border: "1px solid rgba(0,255,0,0.6)",
-              background: "transparent",
-              color: "rgba(0,255,0,0.9)",
+              border: "1px solid rgba(201,151,74,0.4)",
+              background: "rgba(201,151,74,0.04)",
+              color: "rgba(201,151,74,0.82)",
               fontFamily: "'Courier New', monospace",
-              fontSize: "clamp(0.72rem,2.2vw,0.85rem)",
-              letterSpacing: "0.2em",
-              padding: "clamp(0.7rem,2vh,1rem)",
+              fontSize: "clamp(0.7rem,2vw,0.82rem)",
+              letterSpacing: "0.18em",
+              padding: "clamp(0.75rem,2.2vh,1.1rem)",
               cursor: "pointer",
-              animation: "terminalCursor 1.4s step-end infinite",
+              animation: "terminalCursor 1.5s step-end infinite",
               WebkitTapHighlightColor: "transparent",
+              minHeight: "44px",
             }}
           >
-            [ CLICK TO CONTINUE ]
+            [ continue ]
           </button>
 
           <p style={{
-            marginTop: "0.9rem",
-            fontSize: "clamp(0.55rem,1.5vw,0.64rem)",
-            color: "rgba(0,255,0,0.2)",
-            letterSpacing: "0.1em",
+            marginTop: "0.85rem",
+            fontSize: "clamp(0.5rem,1.4vw,0.6rem)",
+            color: "rgba(201,151,74,0.14)",
+            letterSpacing: "0.08em",
             textAlign: "center",
           }}>
-            {"dump: 0x23092026 · core: p23_zavama.log"}
+            {"this was always going to happen"}
             <span className="terminal-cursor"> _</span>
           </p>
         </div>
@@ -968,7 +1010,7 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
     );
   }
 
-  /* ── Render: video phase ── */
+  /* ── Video phase ── */
   return (
     <div style={{
       position: "fixed", inset: 0, height: "100dvh", width: "100vw",
@@ -988,24 +1030,22 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
         }}
         onEnded={onBack}
       />
-
-      {/* Tap-to-unmute hint — fades after 4s */}
       {videoReady && muted && (
         <button
           onClick={handleUnmute}
           className="fade-up"
           style={{
             position: "absolute",
-            bottom: "max(env(safe-area-inset-bottom, 0px), 2rem)",
+            bottom: "max(env(safe-area-inset-bottom, 0px), 2.2rem)",
             left: "50%", transform: "translateX(-50%)",
-            background: "rgba(0,0,0,0.6)",
-            border: "1px solid rgba(255,255,255,0.3)",
-            color: "rgba(255,255,255,0.8)",
+            background: "rgba(0,0,0,0.55)",
+            border: "1px solid rgba(245,239,230,0.25)",
+            color: "rgba(245,239,230,0.75)",
             fontFamily: "'Playfair Display', serif",
             fontSize: "clamp(0.72rem,2vw,0.82rem)",
             fontStyle: "italic",
             letterSpacing: "0.08em",
-            padding: "0.6rem 1.2rem",
+            padding: "0.6rem 1.4rem",
             borderRadius: "2rem",
             cursor: "pointer",
             WebkitTapHighlightColor: "transparent",
@@ -1013,6 +1053,7 @@ function SecretEnding({ onBack }: { onBack: () => void }) {
             minHeight: "44px",
             display: "inline-flex",
             alignItems: "center",
+            whiteSpace: "nowrap",
           }}
         >
           tap for sound ♪
